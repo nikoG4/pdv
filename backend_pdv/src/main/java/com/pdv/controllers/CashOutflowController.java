@@ -30,7 +30,7 @@ public class CashOutflowController extends BaseController<CashOutflow> {
     @CheckPermission(action = "active")
     public ResponseEntity<InputStreamResource> generateReport(@RequestParam HashMap<String, Object> parameters) {
 
-        String report = parameters.get("report").toString();
+        
         parameters.remove("report");
 
         ByteArrayInputStream bis = cashOutflowService.getReport(parameters);
