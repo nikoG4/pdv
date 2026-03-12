@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="purchases" pageWidth="164" pageHeight="842" columnWidth="136" leftMargin="14" rightMargin="14" topMargin="14" bottomMargin="14" uuid="49743ee0-279f-4b32-8a0c-726ce11bfb24">
+	<property name="com.jaspersoft.studio.data.sql.tables">
+		<![CDATA[c2FsZV9pdGVtcyAsMTUsMzAzLGY5NzNkM2IxLTY0ZWItNGViNS1iZjA0LTVlMTYzYjNmODI3MDtj
+bGllbnRzICwzMTQsMjI5LGI3ZGYxMDI2LWJlOGYtNGVjMC04MmU1LWVjYjY4YzMyNTExODt1c2Vy
+cyAsNDYxLDE1LGVlYTdmMzY5LTQzOWItNGM2MS04NDgzLTc4OGQyNzJiMGI5Yjtwcm9kdWN0cyAs
+MTYzLDM5NSwwODkzNjYxMy0xNDdhLTQ5YWMtOWRkMy1lN2E5NzYzMGJiMTU7cHJvZHVjdHNfc2Fs
+ZXMgLDE2Myw0MSw3MDQxNGM0My1jYzU0LTQzYzUtODE1NC0zYzRjMmRjYzA5MDc7]]>
+	</property>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="New Data Adapter (3)"/>
+	<property name="com.jaspersoft.studio.unit." value="mm"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="mm"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="mm"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="mm"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="mm"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="mm"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="mm"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="mm"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="mm"/>
+	<parameter name="id" class="java.lang.String"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT products_sales.id,
+	products.name productname,
+	products.code,
+	sale_items.price,
+	sale_items.quantity,
+	sale_items.subtotal,
+	products_sales.total,
+	products_sales.date,
+	products_sales.invoice_number,
+	clients.name AS clientname,
+	users.username
+FROM sale_items
+	INNER JOIN products_sales ON 
+	 sale_items.sale_id = products_sales.id 
+	INNER JOIN products ON 
+	 sale_items.product_id = products.id 
+	INNER JOIN clients ON 
+	 products_sales.client_id = clients.id 
+	INNER JOIN users ON 
+	 products_sales.created_by = users.id 
+WHERE 
+	 products_sales.id = $P!{id}]]>
+	</queryString>
+	<field name="id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="products_sales"/>
+	</field>
+	<field name="productname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="productname"/>
+		<property name="com.jaspersoft.studio.field.label" value="productname"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="products"/>
+	</field>
+	<field name="code" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="code"/>
+		<property name="com.jaspersoft.studio.field.label" value="code"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="products"/>
+	</field>
+	<field name="price" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="price"/>
+		<property name="com.jaspersoft.studio.field.label" value="price"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="sale_items"/>
+	</field>
+	<field name="quantity" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="quantity"/>
+		<property name="com.jaspersoft.studio.field.label" value="quantity"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="sale_items"/>
+	</field>
+	<field name="subtotal" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="subtotal"/>
+		<property name="com.jaspersoft.studio.field.label" value="subtotal"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="sale_items"/>
+	</field>
+	<field name="total" class="java.lang.Double">
+		<property name="com.jaspersoft.studio.field.name" value="total"/>
+		<property name="com.jaspersoft.studio.field.label" value="total"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="products_sales"/>
+	</field>
+	<field name="date" class="java.sql.Date">
+		<property name="com.jaspersoft.studio.field.name" value="date"/>
+		<property name="com.jaspersoft.studio.field.label" value="date"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="products_sales"/>
+	</field>
+	<field name="invoice_number" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="invoice_number"/>
+		<property name="com.jaspersoft.studio.field.label" value="invoice_number"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="products_sales"/>
+	</field>
+	<field name="clientname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="clientname"/>
+		<property name="com.jaspersoft.studio.field.label" value="clientname"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="clients"/>
+	</field>
+	<field name="username" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="username"/>
+		<property name="com.jaspersoft.studio.field.label" value="username"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="users"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="52" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="2" width="136" height="13" uuid="14f9a1f8-ecd7-477e-bcea-35da6875cf6b"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" markup="none">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Comprobante de venta #"+$F{id}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="30" y="19" width="106" height="11" uuid="e678854c-c659-464c-aa0b-278f56626e8a"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{date}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="19" width="30" height="11" uuid="67b4e4ba-999b-4bb6-bb6f-6ef7a867bc21"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Fecha:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="30" width="59" height="11" uuid="e5b7ce11-9082-4a87-b9c1-2036d5cb6741"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Factura Nro.:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="59" y="30" width="77" height="11" uuid="c56259f7-67fb-457f-aced-bd8aa3eb53b8"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoice_number}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="41" width="37" height="11" uuid="f7b5eec9-3b81-40d5-810a-08cc2ea2f89d"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Cliente:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="37" y="41" width="99" height="11" uuid="bd2d957e-1fb1-44b8-9d31-205da7167d2e"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{clientname}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="11" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="40" height="11" uuid="7c3e239f-37c0-43d7-b335-19611deaddb2"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dashed"/>
+					<topPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Cant]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="0" width="52" height="11" uuid="34781580-94b1-4c7c-8391-d3739307c665"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dashed"/>
+					<topPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[P.Unit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="92" y="0" width="44" height="11" uuid="ed86cc92-20c2-40f8-b5c0-c1b940e382c5"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dashed"/>
+					<topPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Subtotal]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="23">
+			<textField>
+				<reportElement x="0" y="12" width="40" height="11" uuid="658d6838-ecbf-40dd-bc79-6a6eb5869362"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;#,##0.###-">
+				<reportElement x="40" y="12" width="52" height="11" uuid="62ce8a66-b2ba-4aea-ae38-31100a4c8258"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{price}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;#,##0.###-">
+				<reportElement x="92" y="12" width="44" height="11" uuid="d21890f9-fc6c-4e26-99f9-ca7914132bbc"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{subtotal}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="1" width="136" height="11" uuid="03fb8343-64f9-463b-b400-0760687d6fcc"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="52">
+			<textField pattern="#,##0.###;#,##0.###-">
+				<reportElement x="80" y="6" width="56" height="11" uuid="228374d5-b006-4f5f-9573-1753a5554b50"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.25" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="6" width="80" height="11" uuid="04459433-f902-4d33-8c84-1aedd24a0307"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Dashed"/>
+					<topPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Dashed" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="17" width="136" height="11" uuid="e3867aab-6cb0-432b-b437-f560bd7802d5"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Sin valor fiscal]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="28" width="136" height="11" uuid="e7824a49-d427-4f59-b30a-80f63bbc2937"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Consolas" size="8" pdfFontName="Consolas" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Gracias por su compra!]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>
