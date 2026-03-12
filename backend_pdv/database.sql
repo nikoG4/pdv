@@ -161,3 +161,33 @@ VALUES
     ('CashInflow.update',  'Actualizar entrada de efectivo',        'Entradas de Efectivo'),
     ('CashInflow.delete',  'Eliminar entrada de efectivo',          'Entradas de Efectivo')
 ON CONFLICT (name) DO NOTHING;
+
+-- Table for app_config
+CREATE TABLE app_config (
+    id SERIAL PRIMARY KEY,
+    app_name VARCHAR(255) NOT NULL DEFAULT 'Punto de Venta',
+    logo_url VARCHAR(500),
+    favicon_url VARCHAR(500),
+    created_by INTEGER REFERENCES users(id),
+    updated_by INTEGER REFERENCES users(id),
+    deleted_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+-- Insert default configuration
+INSERT INTO app_config (app_name, logo_url, favicon_url)
+VALUES ('Punto de Venta', NULL, NULL)
+ON CONFLICT DO NOTHING;
+
+-- Permisos para el módulo AppConfig (Configuración de la Aplicación)
+INSERT INTO permissions (name, description, module)
+VALUES
+    ('AppConfig.active',  'Listar configuraciones activas',       'Configuración'),
+    ('AppConfig.all',     'Ver todas las configuraciones',       'Configuración'),
+    ('AppConfig.read',    'Ver configuración',                   'Configuración'),
+    ('AppConfig.create',  'Crear configuración',                 'Configuración'),
+    ('AppConfig.update',  'Actualizar configuración',            'Configuración'),
+    ('AppConfig.delete',  'Eliminar configuración',              'Configuración')
+ON CONFLICT (name) DO NOTHING;

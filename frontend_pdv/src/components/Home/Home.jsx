@@ -1,36 +1,13 @@
+// Home.js
 import { useState, useContext, useEffect } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 import Sidebar from '../ui/sidebar';
 import Navbar from '../ui/navbar';
-import Products from '../Products';
-import Categories from '../Categories';
-import Clients from '../Clients';
-import Login from '../Auth/Login';
+import { MODULE_GROUPS } from './../../services/modules';
+import { INDEPENDENT_MODULES } from './../../services/modules';
 import { AuthContext } from '../../services/Auth/AuthContext';
-import Suppliers from '../Supliers';
-import Roles from '../Roles';
-import PurchaseProducts from '../PurchaseProducts';
-import Users from '../Users';
-import QuickAccess from './QuickAccess';
-import SaleProducts from '../SaleProducts';
-import Config from '../Config/Config';
-import CashOutflows from '../CashOutflows';
-import CashInflows from '../CashInflows';
+import Login from '../Auth/Login';
 
-const ROUTES = [
-  { path: '/', title: 'Home', component: QuickAccess },
-  { path: '/products', title: 'Productos', component: Products },
-  { path: '/categories', title: 'Categorías', component: Categories },
-  { path: '/clients', title: 'Clientes', component: Clients },
-  { path: '/suppliers', title: 'Proveedores', component: Suppliers },
-  { path: '/purchases', title: 'Compras', component: PurchaseProducts },
-  { path: '/sales', title: 'Ventas', component: SaleProducts },
-  { path: '/roles', title: 'Roles', component: Roles },
-  { path: '/users', title: 'Usuarios', component: Users },
-  { path: '/settings', title: 'Configuración', component: Config },
-  { path: '/cash-outflows', title: 'Salidas de Efectivo', component: CashOutflows },
-  { path: '/cash-inflows', title: 'Entradas de Efectivo', component: CashInflows },
-];
 
 const Home = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -47,9 +24,14 @@ const Home = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Actualizar título según la ruta usando el mismo array de rutas
+  // Flatten items para buscar el título según la ruta
+  const allRoutes = MODULE_GROUPS.flatMap(group =>
+    group.items.map(item => ({ path: item.path, title: item.title }))
+  );
+
+  // Actualizar título según la ruta
   useEffect(() => {
-    const route = ROUTES.find(r => r.path === location);
+    const route = allRoutes.find(r => r.path === location);
     setTitle(route?.title || '');
   }, [location]);
 
@@ -67,17 +49,24 @@ const Home = () => {
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           canToggle={!isMobile}
         />
+
         <main className="p-4 flex-1 overflow-y-auto">
           <Switch>
-            {ROUTES.map(({ path, component: Component }) => (
+            {MODULE_GROUPS.flatMap(group =>
+              group.items.map(({ path, component: Component }) => (
+                <Route key={path} path={path} component={Component} />
+              ))
+            )}
+            {INDEPENDENT_MODULES.map(({ path, component: Component }) => (
               <Route key={path} path={path} component={Component} />
             ))}
           </Switch>
         </main>
       </div>
+
       <div className="drawer-side">
         <label htmlFor="main-drawer" className="drawer-overlay"></label>
-        <Sidebar isOpen={isMobile ? true : sidebarOpen} canToggle={!isMobile} />
+        <Sidebar isOpen={isMobile ? true : sidebarOpen} />
       </div>
     </div>
   );
