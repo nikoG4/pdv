@@ -136,6 +136,9 @@ VALUES
     ('CashOutflow.delete',  'Eliminar salida de efectivo',          'Salidas de Efectivo')
 ON CONFLICT (name) DO NOTHING;
 
+ALTER TABLE products
+    ALTER COLUMN image TYPE TEXT;
+
 -- Table for cash_inflows
 CREATE TABLE cash_inflows (
     id SERIAL PRIMARY KEY,

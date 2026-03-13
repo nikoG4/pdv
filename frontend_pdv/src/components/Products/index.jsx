@@ -10,42 +10,42 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Input } from '../ui/input';
 import ProductView from './view';
 import ProductsReport from './report';
+import ProductImage from '../ui/product-image';
 
 export default function Products() {
     const [products, setProducts] = useState([]);
-    const [filteredProducts, setFilteredProducts] = useState([]); // Para la lista filtrada
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [viewProduct, setViewProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
     const [selectedBarcodeProduct, setSelectedBarcodeProduct] = useState(null);
     const [productToDelete, setProductToDelete] = useState(null);
-    const [currentPage, setCurrentPage] = useState(0); // Estado para la página actual
-    const [pageSize] = useState(10); // Tamaño de página
-    const [totalElements, setTotalElements] = useState(0); // Estado para el total de elementos
-    const [searchQuery, setSearchQuery] = useState(''); // Estado para la búsqueda
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+    const [searchQuery, setSearchQuery] = useState('');
     const { user } = useContext(AuthContext);
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [file, setFile] = useState(null);
 
-
     const fetchProducts = async (page) => {
         try {
             const response = await ProductService.getAllProducts({ page, size: pageSize, q: searchQuery });
-            setProducts(response.content); 
-            setFilteredProducts(response.content); 
-            setTotalElements(response.totalElements); 
+            setProducts(response.content);
+            setFilteredProducts(response.content);
+            setTotalElements(response.totalElements);
         } catch (error) {
             console.error('Error fetching products:', error);
         }
     };
 
     useEffect(() => {
-        fetchProducts(currentPage); // Llamada a la función de carga de productos
+        fetchProducts(currentPage);
     }, [currentPage, searchQuery]);
 
     const handlePageChange = (newPage) => {
-        setCurrentPage(newPage); // Actualizar la página actual
+        setCurrentPage(newPage);
     };
 
     const handleProductCreate = async (newProduct) => {
@@ -82,7 +82,7 @@ export default function Products() {
         setProductToDelete(product);
         setIsModalOpen(true);
     };
-    
+
     const confirmDeleteProduct = () => {
         if (productToDelete) {
             handleProductDelete(productToDelete.id);
@@ -93,14 +93,14 @@ export default function Products() {
     const handleBarcodePrint = (product) => {
         setSelectedBarcodeProduct(product);
         setIsBarcodeModalOpen(true);
-    }
+    };
 
     const getActions = () => {
         const actions = [];
         if (user?.authorities.includes('Product.read')) {
             actions.push({
                 label: "Ver",
-                icon: <ViewIcon className="h-4 w-4"/>,
+                icon: <ViewIcon className="h-4 w-4" />,
                 onClick: (product) => setViewProduct(product),
             });
         }
@@ -108,15 +108,15 @@ export default function Products() {
         if (user?.authorities.includes('Product.read')) {
             actions.push({
                 label: "Codigo de barras",
-                icon: <BarcodeIcon className="h-4 w-4"/>,
-                onClick: (product) => {handleBarcodePrint(product)},
+                icon: <BarcodeIcon className="h-4 w-4" />,
+                onClick: (product) => { handleBarcodePrint(product); },
             });
         }
 
         if (user?.authorities.includes('Product.update')) {
             actions.push({
                 label: "Editar",
-                icon: <EditIcon className="h-4 w-4"/>,
+                icon: <EditIcon className="h-4 w-4" />,
                 onClick: (product) => setSelectedProduct(product),
             });
         }
@@ -124,7 +124,7 @@ export default function Products() {
         if (user?.authorities.includes('Product.delete')) {
             actions.push({
                 label: "Eliminar",
-                icon: <DeleteIcon className="h-4 w-4"/>,
+                icon: <DeleteIcon className="h-4 w-4" />,
                 onClick: (product) => openConfirmModal(product),
             });
         }
@@ -133,45 +133,43 @@ export default function Products() {
     };
 
     const columns = [
+        { name: "image", label: "Imagen", callback: (image) => <ProductImage src={image} alt="Producto" className="h-12 w-12" /> },
         { name: "id", label: "ID" },
-        { name: "code", label: "Código" },
+        { name: "code", label: "Codigo" },
         { name: "name", label: "Nombre" },
-        { name: "price", label: "Precio",  callback: (total) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(total).replace('PYG', '₲'), align: 'right' },
-        { name: "stock", label: "Stock", align: 'right'},
-        { name: "category.name", label: "Categoría" },
+        { name: "price", label: "Precio", callback: (total) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(total).replace('PYG', 'Gs'), align: 'right' },
+        { name: "stock", label: "Stock", align: 'right' },
+        { name: "category.name", label: "Categoria" },
     ];
 
-    const getReport = async ( params ) => {
-		
-		try {
-			const response = await ProductService.getReport(params);
-			setFile(response);
+    const getReport = async (params) => {
+        try {
+            const response = await ProductService.getReport(params);
+            setFile(response);
             setIsReportVisible(true);
-		} catch (error) {
-			console.error('Error al obtener el reporte:', error);
-		}
-	};
+        } catch (error) {
+            console.error('Error al obtener el reporte:', error);
+        }
+    };
 
-    // Función para manejar la búsqueda
     const handleSearch = (event) => {
-        const searchQuery = event.target.value;
-        setSearchQuery(searchQuery);
+        const query = event.target.value;
+        setSearchQuery(query);
 
-        // Filtrar productos por el nombre o código (agregando validación)
-        const filtered = products.filter((product) => 
-            (product.name && product.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (product.code && product.code.toLowerCase().includes(searchQuery.toLowerCase()))
+        const filtered = products.filter((product) =>
+            (product.name && product.name.toLowerCase().includes(query.toLowerCase())) ||
+            (product.code && product.code.toLowerCase().includes(query.toLowerCase()))
         );
         setFilteredProducts(filtered);
     };
 
     return (
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-             { viewProduct ? (
+            {viewProduct ? (
                 <ProductView selectedProduct={viewProduct} setProduct={setViewProduct} />
-             ):isReportVisible ? (
-                <ProductsReport setIsReportVisible={setIsReportVisible} file={file}/>
-             ) :  selectedProduct ? (
+            ) : isReportVisible ? (
+                <ProductsReport setIsReportVisible={setIsReportVisible} file={file} />
+            ) : selectedProduct ? (
                 <Form
                     selectedProduct={selectedProduct}
                     handleProductUpdate={handleProductUpdate}
@@ -180,44 +178,42 @@ export default function Products() {
                 />
             ) : (
                 <div className="grid gap-4 md:gap-8">
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                         <div className="relative w-80">
                             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 type="search"
-                                placeholder="Búsqueda"
+                                placeholder="Busqueda"
                                 value={searchQuery}
                                 onChange={handleSearch}
-                                className="w-full bg-background shadow-none appearance-none pl-8 md:w-2/3 lg:w-3/3"
+                                className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-3/3"
                             />
-                        </div>      
+                        </div>
                         <div className="flex gap-2">
                             {user?.authorities.includes('Product.read') && (
-                                <Button 
-                                    key={1} 
-                                    variant="primary"  
+                                <Button
+                                    key={1}
+                                    variant="primary"
                                     onClick={() => {
-                                        getReport({report: 'products' })}
-                                    }
+                                        getReport({ report: 'products' });
+                                    }}
                                 >
-                                    <MenuIcon className="h-4 w-4 mr-1"  />Reporte de Inventario
+                                    <MenuIcon className="mr-1 h-4 w-4" />Reporte de Inventario
                                 </Button>
                             )}
                             {user?.authorities.includes('Product.create') && (
                                 <Button key={2} variant="primary" onClick={() => setSelectedProduct({})}>
-                                    <PlusIcon className="h-4 w-4 mr-1" /> Nuevo Producto
+                                    <PlusIcon className="mr-1 h-4 w-4" /> Nuevo Producto
                                 </Button>
                             )}
-                            
-                        </div>                      
-
+                        </div>
                     </div>
                     <Card>
                         <CardContent>
-                            <TableData 
-                                data={filteredProducts} // Mostrar solo productos filtrados
-                                columns={columns} 
-                                actions={getActions()} 
+                            <TableData
+                                data={filteredProducts}
+                                columns={columns}
+                                actions={getActions()}
                                 totalElements={totalElements}
                                 pageSize={pageSize}
                                 onPageChange={handlePageChange}
@@ -230,8 +226,8 @@ export default function Products() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onConfirm={confirmDeleteProduct}
-                title="Confirmar eliminación"
-                message="¿Estás seguro de que deseas eliminar este producto?"
+                title="Confirmar eliminacion"
+                message="Estas seguro de que deseas eliminar este producto?"
             />
             <ConfirmModal
                 isOpen={isBarcodeModalOpen}
@@ -241,7 +237,7 @@ export default function Products() {
                     setIsBarcodeModalOpen(false);
                 }}
                 title="Ingresar cantidad"
-                message="Por favor, ingresa la cantidad de códigos de barras a generar."
+                message="Por favor, ingresa la cantidad de codigos de barras a generar."
                 inputConfig={{
                     type: "number",
                     placeholder: "Cantidad",

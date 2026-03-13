@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { ArrowLeftIcon } from '../ui/icons';
 import ProductService from '../../services/ProductService';
 import ClientService from './../../services/ClientService';
+import ProductImage from '../ui/product-image';
 
 const SaleProductsView = ({ selectedSale, setSale }) => {
   const [clients, setClients] = useState([]);
@@ -108,7 +109,7 @@ const SaleProductsView = ({ selectedSale, setSale }) => {
                       <tr key={item.product.id} className="border-b">
                         <td className="py-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100"></div>
+                            <ProductImage src={item.product.image} alt={item.product.name} className="h-10 w-10" />
                             <div>
                               <h4 className="font-medium">{item.product.name}</h4>
                               <p className="text-sm text-muted-foreground">{item.product.description}</p>

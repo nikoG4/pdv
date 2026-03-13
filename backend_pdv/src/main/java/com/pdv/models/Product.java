@@ -36,6 +36,9 @@ public class Product extends Auditable {
     @Column(nullable = true)
     private Double profit;
 
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String image;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;

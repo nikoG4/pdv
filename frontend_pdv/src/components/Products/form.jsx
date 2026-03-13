@@ -8,16 +8,26 @@ import { Textarea } from '../ui/textarea';
 import { Checkbox } from '../ui/checkbox';
 import Select from 'react-select';
 import CategoryService from '../../services/CategoryService';
+import ProductImage from '../ui/product-image';
 
 const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setProduct }) => {
   const [categories, setCategories] = useState([]);
-  const [isNewProduct, setIsNewProduct] = useState(Object.keys(selectedProduct).length === 0);
+  const [isNewProduct] = useState(Object.keys(selectedProduct).length === 0);
+  const [formValues, setFormValues] = useState({
+    code: selectedProduct?.code || '',
+    name: selectedProduct?.name || '',
+    description: selectedProduct?.description || '',
+    category: selectedProduct?.category || null,
+    price: selectedProduct?.price || '',
+    iva: selectedProduct?.iva || '',
+    stockControl: selectedProduct?.stockControl || false,
+    image: selectedProduct?.image || ''
+  });
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const data = await CategoryService.getCategories();
-        console.log(data);
         setCategories(data);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -27,32 +37,51 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
     fetchCategories();
   }, []);
 
-  // Actualiza el estado del formulario
-  const [formValues, setFormValues] = useState({
-    code: selectedProduct?.code || '',
-    name: selectedProduct?.name || '',
-    description: selectedProduct?.description || '',
-    category: selectedProduct?.category || null,
-    price: selectedProduct?.price || '',
-    iva: selectedProduct?.iva || '',
-    stockControl: selectedProduct?.stockControl || false
-  });
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormValues({
-      ...formValues,
+    setFormValues((prevValues) => ({
+      ...prevValues,
       [name]: type === 'checkbox' ? checked : value
-    });
+    }));
   };
 
   const handleCategoryChange = (selectedOption) => {
-    setFormValues({ ...formValues, category: selectedOption });
+    setFormValues((prevValues) => ({ ...prevValues, category: selectedOption }));
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('Seleccione un archivo de imagen valido');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormValues((prevValues) => ({
+        ...prevValues,
+        image: reader.result
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      image: ''
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const updatedProduct = {
       id: selectedProduct?.id,
       ...formValues,
@@ -61,14 +90,13 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
       iva: parseInt(formValues.iva),
     };
 
-
-    if(updatedProduct.name === '' || updatedProduct.name === null) {
+    if (updatedProduct.name === '' || updatedProduct.name === null) {
       alert('Nombre no valido');
       return;
-    }else if(updatedProduct.category === null || updatedProduct.category === undefined) {
+    } else if (updatedProduct.category === null || updatedProduct.category === undefined) {
       alert('Seleccione una categoria');
       return;
-    }else if(!updatedProduct.price || updatedProduct.price <= 0) {
+    } else if (!updatedProduct.price || updatedProduct.price <= 0) {
       alert('El precio no es valido');
       return;
     }
@@ -100,9 +128,9 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="code">Código</Label>
+                <Label htmlFor="code">Codigo</Label>
                 <Input
                   id="code"
                   name="code"
@@ -122,7 +150,7 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
                 />
               </div>
               <div className="col-span-2">
-                <Label htmlFor="description">Descripción</Label>
+                <Label htmlFor="description">Descripcion</Label>
                 <Textarea
                   id="description"
                   name="description"
@@ -130,15 +158,39 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
                   onChange={handleInputChange}
                 />
               </div>
+              <div className="col-span-2 grid gap-3">
+                <Label htmlFor="image">Imagen</Label>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start">
+                  <ProductImage
+                    src={formValues.image}
+                    alt={formValues.name || 'Producto'}
+                    className="h-28 w-28"
+                  />
+                  <div className="grid flex-1 gap-2">
+                    <Input
+                      id="image"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                    {formValues.image && (
+                      <Button type="button" variant="outline" onClick={handleRemoveImage}>
+                        Quitar imagen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className="grid gap-2">
-                <Label htmlFor="category_id">Categoría</Label>
+                <Label htmlFor="category_id">Categoria</Label>
                 <Select
                   options={categories}
                   id="category_id"
                   getOptionLabel={(option) => option.name}
                   getOptionValue={(option) => option.id}
-                  value={formValues.category} 
-                  onChange={handleCategoryChange} 
+                  value={formValues.category}
+                  onChange={handleCategoryChange}
                   name="category_id"
                 />
               </div>
@@ -164,12 +216,12 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center mt-5">
+                <div className="mt-5 flex items-center">
                   <Checkbox
                     id="stockControl"
                     name="stockControl"
                     checked={formValues.stockControl}
-                    onChange={handleInputChange} // Usar el manejador de cambios
+                    onChange={handleInputChange}
                   />
                   <Label htmlFor="stockControl" className="ml-2">
                     Controlar Stock?

@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { SearchIcon, DeleteIcon, NoImageIcon, ArrowLeftIcon } from "../ui/icons"; // Asumiendo que tienes un icono de basura
+import { SearchIcon, DeleteIcon, ArrowLeftIcon } from "../ui/icons"; // Asumiendo que tienes un icono de basura
 import Select from "react-select";
 import ProductService from "../../services/ProductService";
 import SupplierService from "./../../services/SupplierService";
+import ProductImage from "../ui/product-image";
 
 const PurchaseProductsForm = ({ selectedPurchase, handlePurchaseUpdate, handlePurchaseCreate, setPurchase }) => {
   const [suppliers, setSuppliers] = useState([]);
@@ -116,7 +117,7 @@ const PurchaseProductsForm = ({ selectedPurchase, handlePurchaseUpdate, handlePu
         return [
           ...prevSelectedProducts,
           { 
-            product: {id: product.id, name: product.name, description: product.description, code: product.code}, 
+            product: {id: product.id, name: product.name, description: product.description, code: product.code, image: product.image}, 
             quantity: 1, 
             price: 0,
             subtotal: 0
@@ -333,11 +334,14 @@ const PurchaseProductsForm = ({ selectedPurchase, handlePurchaseUpdate, handlePu
                           className="flex justify-between p-2 cursor-pointer hover:bg-gray-100"
                           onClick={() => handleProductSelect(product)}
                         >
-                          <div className="flex flex-col">
-                            <span className="font-medium">{product.name}</span>
-                            <span className="text-sm text-gray-500 truncate">
-                              {product.description}
-                            </span>
+                          <div className="flex items-center gap-4">
+                            <ProductImage src={product.image} alt={product.name} className="h-10 w-10" />
+                            <div className="flex flex-col">
+                              <span className="font-medium">{product.name}</span>
+                              <span className="text-sm text-gray-500 truncate">
+                                {product.description}
+                              </span>
+                            </div>
                           </div>
 
                         </div>
@@ -364,8 +368,7 @@ const PurchaseProductsForm = ({ selectedPurchase, handlePurchaseUpdate, handlePu
                       <tr key={item.id} className="border-b">
                         <td className="py-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100">
-                            </div>
+                            <ProductImage src={item.product.image} alt={item.product.name} className="h-10 w-10" />
                             <div>
                               <h4 className="font-medium">
                                 {item.product.name}

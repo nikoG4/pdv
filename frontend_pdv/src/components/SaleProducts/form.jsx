@@ -7,6 +7,7 @@ import { SearchIcon, DeleteIcon, ArrowLeftIcon } from '../ui/icons'
 import Select from 'react-select'
 import ProductService from '../../services/ProductService'
 import ClientService from './../../services/ClientService'
+import ProductImage from '../ui/product-image'
 
 const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, setSale }) => {
 	const [clients, setClients] = useState([])
@@ -328,7 +329,7 @@ const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, se
 													onClick={() => handleProductSelect(product)}
 												>
 													<div className="flex gap-4">
-														<div className="w-10 h-10 rounded-full bg-gray-100"></div>
+														<ProductImage src={product.image} alt={product.name} className="h-10 w-10" />
 														<div className="flex flex-col">
 															<div className="flex items-center">
 																<span className="font-medium">{product.name}</span>
@@ -373,7 +374,7 @@ const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, se
 											<tr key={item.id} className="border-b">
 												<td className="py-2">
 													<div className="flex items-center gap-3">
-														<div className="w-10 h-10 rounded-full bg-gray-100"></div>
+														<ProductImage src={item.product.image} alt={item.product.name} className="h-10 w-10" />
 														<div>
 															<h4 className="font-medium">{item.product.name}</h4>
 															<p className="text-sm text-muted-foreground">

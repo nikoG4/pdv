@@ -46,6 +46,9 @@ public class ProductService extends BaseService<Product> {
         product.setCode(updatedProduct.getCode());
         product.setName(updatedProduct.getName());
         product.setDescription(updatedProduct.getDescription());
+        product.setIva(updatedProduct.getIva());
+        product.setImage(updatedProduct.getImage());
+        product.setCategory(updatedProduct.getCategory());
         product.setPrice(updatedProduct.getPrice());
         product.setStockControl(updatedProduct.getStockControl());
         product.setUpdatedBy(user);

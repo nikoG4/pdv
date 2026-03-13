@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Label } from "../ui/label";
-import { ArrowLeftIcon } from "../ui/icons"; // Asumiendo que tienes un icono de basura
+import { ArrowLeftIcon } from "../ui/icons";
 import SupplierService from "./../../services/SupplierService";
+import ProductImage from "../ui/product-image";
 
 const PurchaseProductsView = ({ selectedPurchase, setViewPurchase }) => {
-  const [suppliers, setSuppliers] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(selectedPurchase.supplier || null);
   const [total, setTotal] = useState(selectedPurchase.total || 0);
 
@@ -15,14 +14,15 @@ const PurchaseProductsView = ({ selectedPurchase, setViewPurchase }) => {
     const fetchSuppliers = async () => {
       try {
         const result = await SupplierService.getAllSuppliers();
-        setSuppliers(result.content);
+        const supplier = result.content.find((item) => item.id === selectedPurchase.supplier?.id);
+        setSelectedSupplier(supplier || selectedPurchase.supplier || null);
       } catch (error) {
         console.error("Error fetching suppliers:", error);
       }
     };
 
     fetchSuppliers();
-  }, []);
+  }, [selectedPurchase.supplier]);
 
   useEffect(() => {
     setTotal(selectedPurchase.total);
@@ -49,12 +49,10 @@ const PurchaseProductsView = ({ selectedPurchase, setViewPurchase }) => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-6">
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
                 <Label htmlFor="date">Fecha</Label>
-                <span>
-                  {new Date(selectedPurchase.date).toLocaleDateString("es-ES")}
-                </span>
+                <span>{new Date(selectedPurchase.date).toLocaleDateString("es-ES")}</span>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="supplier">Proveedor</Label>
@@ -67,22 +65,21 @@ const PurchaseProductsView = ({ selectedPurchase, setViewPurchase }) => {
             </div>
 
             <div>
-              <div className="flex justify-end mt-4 font-semibold text-red-600 text-xl">
-                Total: {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(total).replace('PYG', '₲')}
+              <div className="mt-4 flex justify-end text-xl font-semibold text-red-600">
+                Total: {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(total).replace('PYG', 'Gs')}
               </div>
               <Label className="font-semibold">Productos</Label>
               <p className="text-sm text-muted-foreground">
                 Lista de productos comprados
               </p>
-              <div className="border rounded-lg mt-2 p-4">
-                {/* Tabla de productos */}
+              <div className="mt-2 rounded-lg border p-4">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left pb-2 w-58">Producto</th>
-                      <th className="text-center pb-2 w-24">Cantidad</th>
-                      <th className="text-center pb-2 w-40">Precio de Compra</th>
-                      <th className="text-right pb-2 w-40">Subtotal</th>
+                      <th className="w-58 pb-2 text-left">Producto</th>
+                      <th className="w-24 pb-2 text-center">Cantidad</th>
+                      <th className="w-40 pb-2 text-center">Precio de Compra</th>
+                      <th className="w-40 pb-2 text-right">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -90,13 +87,11 @@ const PurchaseProductsView = ({ selectedPurchase, setViewPurchase }) => {
                       <tr key={item.product.id} className="border-b">
                         <td className="py-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100">
-                              {/* Aquí podrías agregar una imagen del producto si está disponible */}
-                            </div>
+                            <ProductImage src={item.product.image} alt={item.product.name} className="h-10 w-10" />
                             <div>
                               <h4 className="font-medium">
                                 {item.product.name}
-                                <span className="text-xs ml-1">
+                                <span className="ml-1 text-xs">
                                   ({item.product.code})
                                 </span>
                               </h4>
@@ -106,12 +101,12 @@ const PurchaseProductsView = ({ selectedPurchase, setViewPurchase }) => {
                             </div>
                           </div>
                         </td>
-                        <td className="text-center py-2">{item.quantity}</td>
-                        <td className="text-center py-2">
-                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(item.price).replace('PYG', '₲')}
+                        <td className="py-2 text-center">{item.quantity}</td>
+                        <td className="py-2 text-center">
+                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(item.price).replace('PYG', 'Gs')}
                         </td>
-                        <td className="text-right py-2">
-                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(item.subtotal).replace('PYG', '₲')}
+                        <td className="py-2 text-right">
+                          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PYG' }).format(item.subtotal).replace('PYG', 'Gs')}
                         </td>
                       </tr>
                     ))}
