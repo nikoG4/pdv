@@ -181,7 +181,12 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
                       onChange={handleImageChange}
                     />
                     {formValues.image && (
-                      <Button type="button" variant="outline" onClick={handleRemoveImage}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveImage}
+                        className="h-8 w-fit px-3 text-xs"
+                      >
                         Quitar imagen
                       </Button>
                     )}
