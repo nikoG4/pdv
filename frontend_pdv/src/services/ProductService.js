@@ -1,6 +1,27 @@
 import axiosInstance from './axiosConfig';
 
 class ProductService {
+  buildFormData(product) {
+    const formData = new FormData();
+    formData.append('code', product.code || '');
+    formData.append('name', product.name || '');
+    formData.append('description', product.description || '');
+    formData.append('categoryId', product.category?.id ?? '');
+    formData.append('price', product.price ?? '');
+    formData.append('stockControl', product.stockControl ? 'true' : 'false');
+    formData.append('removeImage', product.removeImage ? 'true' : 'false');
+
+    if (!Number.isNaN(product.iva) && product.iva !== undefined && product.iva !== null) {
+      formData.append('iva', product.iva);
+    }
+
+    if (product.imageFile) {
+      formData.append('image', product.imageFile);
+    }
+
+    return formData;
+  }
+
   // Método para obtener la lista de todos los productos con paginación
   async getAllProducts({ page = 0, size = 10, q = ""}) {
     try {
@@ -52,9 +73,9 @@ class ProductService {
 
   async save(product) {
     try {
-      const response = await axiosInstance.post('/products', product, {
+      const response = await axiosInstance.post('/products', this.buildFormData(product), {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       });
       return response.data;
@@ -67,9 +88,9 @@ class ProductService {
 
   async update(id, product) {
     try {
-      const response = await axiosInstance.put(`/products/${id}`, product, {
+      const response = await axiosInstance.put(`/products/${id}`, this.buildFormData(product), {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       });
       return response.data;

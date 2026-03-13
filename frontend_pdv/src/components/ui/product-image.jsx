@@ -1,4 +1,22 @@
 import { NoImageIcon } from './icons';
+import axiosInstance from '../../services/axiosConfig';
+
+const resolveImageUrl = (src) => {
+  if (!src) {
+    return '';
+  }
+
+  if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
+    return src;
+  }
+
+  const apiBaseUrl = axiosInstance.defaults.baseURL || '';
+  const serverBaseUrl = apiBaseUrl.endsWith('/api')
+    ? apiBaseUrl.slice(0, -4)
+    : apiBaseUrl;
+
+  return `${serverBaseUrl}${src}`;
+};
 
 const ProductImage = ({ src, alt, className = '' }) => {
   if (!src) {
@@ -11,7 +29,7 @@ const ProductImage = ({ src, alt, className = '' }) => {
 
   return (
     <img
-      src={src}
+      src={resolveImageUrl(src)}
       alt={alt}
       className={`rounded-md object-cover bg-gray-100 ${className}`}
     />

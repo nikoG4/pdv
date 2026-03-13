@@ -21,7 +21,9 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
     price: selectedProduct?.price || '',
     iva: selectedProduct?.iva || '',
     stockControl: selectedProduct?.stockControl || false,
-    image: selectedProduct?.image || ''
+    image: selectedProduct?.image || '',
+    imageFile: null,
+    removeImage: false
   });
 
   useEffect(() => {
@@ -66,7 +68,9 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
     reader.onloadend = () => {
       setFormValues((prevValues) => ({
         ...prevValues,
-        image: reader.result
+        image: reader.result,
+        imageFile: file,
+        removeImage: false
       }));
     };
     reader.readAsDataURL(file);
@@ -75,7 +79,9 @@ const Form = ({ selectedProduct, handleProductUpdate, handleProductCreate, setPr
   const handleRemoveImage = () => {
     setFormValues((prevValues) => ({
       ...prevValues,
-      image: ''
+      image: '',
+      imageFile: null,
+      removeImage: true
     }));
   };
 
