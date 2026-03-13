@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
+/* eslint-disable react/prop-types */
+import { createContext, useState, useEffect } from 'react';
 import {jwtDecode} from 'jwt-decode';
 import { useLocation } from 'wouter';
 import AppConfigService from '../AppConfigService';
@@ -31,6 +32,7 @@ const AuthProvider = ({ children }) => {
       localStorage.setItem('appName', config.appName || 'Punto de Venta');
       localStorage.setItem('logoUrl', config.logoUrl || '');
       localStorage.setItem('faviconUrl', config.faviconUrl || '');
+      localStorage.setItem('salesPosDefaultUsers', config.posDefaultUsers || '');
       // Actualizar titulo del documento
       document.title = config.appName || 'Punto de Venta';
       // Actualizar favicon si existe

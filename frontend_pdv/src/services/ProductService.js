@@ -39,10 +39,10 @@ class ProductService {
     }
   }
 
-  async searchProducts({ q = "", page = 0, size = 10, sort = "id", direction = "ASC" } = {}) {
+  async searchProducts({ q = "", page = 0, size = 10, criteria = "default", sort = "id", direction = "ASC" } = {}) {
     try {
       const response = await axiosInstance.get('/products/search', {
-        params: { q, page, size, sort, direction },
+        params: { q, page, size, criteria, sort, direction },
         headers: {
           'Content-Type': 'application/json'
         }

@@ -8,13 +8,22 @@ import { INDEPENDENT_MODULES } from './../../services/modules';
 import { AuthContext } from '../../services/Auth/AuthContext';
 import Login from '../Auth/Login';
 
+const SALES_MODE_STORAGE_KEY = 'sales-mode';
+const SALES_LAYOUT_EVENT = 'sales-pos-layout-changed';
+
+const parseConfiguredUsers = (value) =>
+  (value || '')
+    .split(/\r?\n|,/)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
 
 const Home = () => {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, user } = useContext(AuthContext);
   const [title, setTitle] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [location] = useLocation();
+  const [posLayoutActive, setPosLayoutActive] = useState(false);
 
   // Detectar si está en móvil
   useEffect(() => {
@@ -35,8 +44,43 @@ const Home = () => {
     setTitle(route?.title || '');
   }, [location]);
 
+  useEffect(() => {
+    const configuredUsers = parseConfiguredUsers(localStorage.getItem('salesPosDefaultUsers'));
+    const currentUsername = user?.username?.toLowerCase?.() || '';
+    const userStartsInPos = configuredUsers.includes(currentUsername);
+    const savedMode = localStorage.getItem(SALES_MODE_STORAGE_KEY) === 'pos';
+
+    setPosLayoutActive(location === '/sales' && (savedMode || userStartsInPos));
+  }, [location, user]);
+
+  useEffect(() => {
+    const handleLayoutChange = (event) => {
+      setPosLayoutActive(Boolean(event.detail?.active) && location === '/sales');
+    };
+
+    window.addEventListener(SALES_LAYOUT_EVENT, handleLayoutChange);
+    return () => window.removeEventListener(SALES_LAYOUT_EVENT, handleLayoutChange);
+  }, [location]);
+
   if (!isAuthenticated) {
     return <Login />;
+  }
+
+  if (posLayoutActive && location === '/sales') {
+    return (
+      <div className="min-h-screen bg-slate-100">
+        <Switch>
+          {MODULE_GROUPS.flatMap(group =>
+            group.items.map(({ path, component: Component }) => (
+              <Route key={path} path={path} component={Component} />
+            ))
+          )}
+          {INDEPENDENT_MODULES.map(({ path, component: Component }) => (
+            <Route key={path} path={path} component={Component} />
+          ))}
+        </Switch>
+      </div>
+    );
   }
 
   return (

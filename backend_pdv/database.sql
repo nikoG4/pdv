@@ -168,9 +168,8 @@ ON CONFLICT (name) DO NOTHING;
 -- Table for app_config
 CREATE TABLE app_config (
     id SERIAL PRIMARY KEY,
-    app_name VARCHAR(255) NOT NULL DEFAULT 'Punto de Venta',
-    logo_url VARCHAR(500),
-    favicon_url VARCHAR(500),
+    key_name VARCHAR(100),
+    value TEXT,
     created_by INTEGER REFERENCES users(id),
     updated_by INTEGER REFERENCES users(id),
     deleted_by INTEGER REFERENCES users(id),
@@ -180,9 +179,71 @@ CREATE TABLE app_config (
 );
 
 -- Insert default configuration
-INSERT INTO app_config (app_name, logo_url, favicon_url)
-VALUES ('Punto de Venta', NULL, NULL)
-ON CONFLICT DO NOTHING;
+ALTER TABLE app_config
+    ADD COLUMN IF NOT EXISTS key_name VARCHAR(100);
+
+ALTER TABLE app_config
+    ADD COLUMN IF NOT EXISTS value TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_app_config_key_name_active
+    ON app_config (key_name)
+    WHERE deleted_at IS NULL AND key_name IS NOT NULL;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'app_config' AND column_name = 'app_name'
+    ) THEN
+        INSERT INTO app_config (key_name, value, created_at)
+        SELECT 'appName', COALESCE(app_name, 'Punto de Venta'), NOW()
+        FROM app_config
+        WHERE COALESCE(app_name, '') <> ''
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'app_config' AND column_name = 'logo_url'
+    ) THEN
+        INSERT INTO app_config (key_name, value, created_at)
+        SELECT 'logoUrl', COALESCE(logo_url, ''), NOW()
+        FROM app_config
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'app_config' AND column_name = 'favicon_url'
+    ) THEN
+        INSERT INTO app_config (key_name, value, created_at)
+        SELECT 'faviconUrl', COALESCE(favicon_url, ''), NOW()
+        FROM app_config
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'app_config' AND column_name = 'pos_default_users'
+    ) THEN
+        INSERT INTO app_config (key_name, value, created_at)
+        SELECT 'posDefaultUsers', COALESCE(pos_default_users, ''), NOW()
+        FROM app_config
+        ON CONFLICT DO NOTHING;
+    END IF;
+END $$;
+
+INSERT INTO app_config (key_name, value)
+VALUES
+    ('appName', 'Punto de Venta'),
+    ('logoUrl', ''),
+    ('faviconUrl', ''),
+    ('posDefaultUsers', '')
+ON CONFLICT (key_name) DO NOTHING;
 
 -- Permisos para el módulo AppConfig (Configuración de la Aplicación)
 INSERT INTO permissions (name, description, module)

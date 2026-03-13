@@ -132,9 +132,14 @@ public class ProductController extends BaseController<Product> {
         @RequestParam(defaultValue = "", required = false) String q,
         @RequestParam(defaultValue = "0", required = false) int page,
         @RequestParam(defaultValue = "10", required = false) int size,
+        @RequestParam(defaultValue = "default", required = false) String criteria,
         @RequestParam(defaultValue = "id", required = false) String sort,
         @RequestParam(defaultValue = "ASC", required = false) String direction
     ) {
+        if ("ranked".equalsIgnoreCase(criteria)) {
+            Pageable pageable = PageRequest.of(page, size);
+            return productService.findRankedProducts(q, pageable);
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.valueOf(direction), sort));
         return productService.findByNameOrDescriptionOrCode(q, pageable);
     }

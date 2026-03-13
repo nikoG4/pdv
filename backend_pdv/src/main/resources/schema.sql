@@ -50,6 +50,24 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     CONSTRAINT role_permissions_unique UNIQUE (role_id, permission_id)
 );
 
+ALTER TABLE IF EXISTS public.app_config
+    ADD COLUMN IF NOT EXISTS key_name VARCHAR(100);
+
+ALTER TABLE IF EXISTS public.app_config
+    ADD COLUMN IF NOT EXISTS value TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_app_config_key_name_active
+    ON public.app_config (key_name)
+    WHERE deleted_at IS NULL AND key_name IS NOT NULL;
+
+INSERT INTO public.app_config (key_name, value, created_at)
+VALUES
+    ('appName', 'Punto de Venta', NOW()),
+    ('logoUrl', '', NOW()),
+    ('faviconUrl', '', NOW()),
+    ('posDefaultUsers', '', NOW())
+ON CONFLICT DO NOTHING;
+
 -- Create index for product code
 CREATE UNIQUE INDEX IF NOT EXISTS idx_product_code ON products(code) WHERE deleted_at IS NULL;
 

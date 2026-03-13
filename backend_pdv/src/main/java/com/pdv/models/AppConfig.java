@@ -1,6 +1,11 @@
 package com.pdv.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,13 +19,9 @@ public class AppConfig extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "app_name", nullable = false)
-    private String appName = "Punto de Venta";
+    @Column(name = "key_name", nullable = false, length = 100)
+    private String keyName;
 
-    @Column(name = "logo_url")
-    private String logoUrl;
-
-    @Column(name = "favicon_url")
-    private String faviconUrl;
-
+    @Column(name = "value", columnDefinition = "TEXT")
+    private String value;
 }

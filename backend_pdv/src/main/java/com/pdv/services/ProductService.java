@@ -28,6 +28,10 @@ public class ProductService extends BaseService<Product> {
     public Page<Product> findByNameOrDescriptionOrCode(String q, Pageable pageable) {
         return this.productRepository.findByNameOrDescriptionOrCode(q, pageable);
     }
+
+    public Page<Product> findRankedProducts(String q, Pageable pageable) {
+        return this.productRepository.findRankedProducts(q == null ? "" : q, pageable);
+    }
     
     public Optional<Product> findByCode(String code) {
         return this.productRepository.findByCode(code);
