@@ -619,7 +619,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <p className="text-sm text-slate-500">Widgets activos</p>
@@ -642,7 +642,7 @@ const Dashboard = () => {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {activeWidgets.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
