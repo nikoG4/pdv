@@ -3,7 +3,7 @@ import { createContext, useState, useEffect } from 'react';
 import {jwtDecode} from 'jwt-decode';
 import { useLocation } from 'wouter';
 import AppConfigService from '../AppConfigService';
-import axiosInstance from '../axiosConfig';
+import { resolveBackendUrl } from '../../lib/backend-url';
 
 // Crear el contexto
 const AuthContext = createContext();
@@ -14,15 +14,6 @@ const AuthProvider = ({ children }) => {
   const [location, setLocation] = useLocation();
 
   // Funcion para construir URL completa
-  const getFullImageUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-      return url;
-    }
-    const baseUrl = axiosInstance.defaults.baseURL || '';
-    return `${baseUrl}${url}`;
-  };
-
   // Funcion para cargar configuracion de la app
   const loadAppConfig = async () => {
     try {
@@ -33,6 +24,7 @@ const AuthProvider = ({ children }) => {
       localStorage.setItem('logoUrl', config.logoUrl || '');
       localStorage.setItem('faviconUrl', config.faviconUrl || '');
       localStorage.setItem('salesPosDefaultUsers', config.posDefaultUsers || '');
+      localStorage.setItem('cashDenominations', config.cashDenominations || '5000\n10000\n20000\n50000\n100000');
       // Actualizar titulo del documento
       document.title = config.appName || 'Punto de Venta';
       // Actualizar favicon si existe
@@ -43,7 +35,7 @@ const AuthProvider = ({ children }) => {
           link.rel = 'icon';
           document.head.appendChild(link);
         }
-        link.href = getFullImageUrl(config.faviconUrl);
+        link.href = resolveBackendUrl(config.faviconUrl);
       }
       // Disparar evento para notificar cambios
       window.dispatchEvent(new Event('app-config-changed'));

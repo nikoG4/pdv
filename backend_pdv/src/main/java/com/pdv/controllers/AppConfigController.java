@@ -51,6 +51,7 @@ public class AppConfigController extends BaseController<AppConfig> {
     public ResponseEntity<Map<String, String>> saveCurrentConfig(
             @RequestParam String appName,
             @RequestParam(required = false, defaultValue = "") String posDefaultUsers,
+            @RequestParam(required = false, defaultValue = "") String cashDenominations,
             @RequestParam(required = false) MultipartFile logo,
             @RequestParam(required = false) MultipartFile favicon
     ) throws IOException {
@@ -75,7 +76,7 @@ public class AppConfigController extends BaseController<AppConfig> {
             faviconUrl = "/files/" + faviconFileName;
         }
 
-        appConfigService.saveConfig(appName, logoUrl, faviconUrl, posDefaultUsers);
+        appConfigService.saveConfig(appName, logoUrl, faviconUrl, posDefaultUsers, cashDenominations);
         return ResponseEntity.ok(appConfigService.getConfig());
     }
 

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="cash_register_summary"
+              pageWidth="595"
+              pageHeight="842"
+              columnWidth="555"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20">
+
+    <parameter name="cashRegisterId" class="java.lang.Integer"/>
+
+    <queryString language="SQL">
+        <![CDATA[
+            SELECT
+                cr.id,
+                cr.opening_date,
+                COALESCE(cr.closing_date, CURRENT_DATE) AS closing_date,
+                cr.status,
+                cr.observation,
+                cr.opening_amount,
+                COALESCE((
+                    SELECT SUM(ps.total)::NUMERIC(19,2)
+                    FROM products_sales ps
+                    WHERE ps.deleted_at IS NULL
+                      AND ps.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                ), 0) AS sales_total,
+                COALESCE((
+                    SELECT SUM(pp.total)::NUMERIC(19,2)
+                    FROM products_purchases pp
+                    WHERE pp.deleted_at IS NULL
+                      AND pp.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                ), 0) AS purchases_total,
+                COALESCE((
+                    SELECT SUM(ci.amount)::NUMERIC(19,2)
+                    FROM cash_inflows ci
+                    WHERE ci.deleted_at IS NULL
+                      AND ci.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                ), 0) AS inflows_total,
+                COALESCE((
+                    SELECT SUM(co.amount)::NUMERIC(19,2)
+                    FROM cash_outflows co
+                    WHERE co.deleted_at IS NULL
+                      AND co.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                ), 0) AS outflows_total,
+                CASE
+                    WHEN cr.status = 'CLOSED' AND cr.expected_amount IS NOT NULL THEN cr.expected_amount
+                    ELSE (
+                        cr.opening_amount
+                        + COALESCE((
+                            SELECT SUM(ps.total)::NUMERIC(19,2)
+                            FROM products_sales ps
+                            WHERE ps.deleted_at IS NULL
+                              AND ps.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                        ), 0)
+                        + COALESCE((
+                            SELECT SUM(ci.amount)::NUMERIC(19,2)
+                            FROM cash_inflows ci
+                            WHERE ci.deleted_at IS NULL
+                              AND ci.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                        ), 0)
+                        - COALESCE((
+                            SELECT SUM(pp.total)::NUMERIC(19,2)
+                            FROM products_purchases pp
+                            WHERE pp.deleted_at IS NULL
+                              AND pp.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                        ), 0)
+                        - COALESCE((
+                            SELECT SUM(co.amount)::NUMERIC(19,2)
+                            FROM cash_outflows co
+                            WHERE co.deleted_at IS NULL
+                              AND co.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+                        ), 0)
+                    )
+                END AS expected_amount,
+                cr.closing_amount,
+                cr.difference_amount,
+                COALESCE(uo.username, 'Sistema') AS opened_by,
+                COALESCE(uc.username, '') AS closed_by
+            FROM cash_registers cr
+            LEFT JOIN users uo ON uo.id = cr.created_by
+            LEFT JOIN users uc ON uc.id = cr.updated_by
+            WHERE cr.id = $P{cashRegisterId}
+        ]]>
+    </queryString>
+
+    <field name="id" class="java.lang.Long"/>
+    <field name="opening_date" class="java.sql.Date"/>
+    <field name="closing_date" class="java.sql.Date"/>
+    <field name="status" class="java.lang.String"/>
+    <field name="observation" class="java.lang.String"/>
+    <field name="opening_amount" class="java.math.BigDecimal"/>
+    <field name="sales_total" class="java.math.BigDecimal"/>
+    <field name="purchases_total" class="java.math.BigDecimal"/>
+    <field name="inflows_total" class="java.math.BigDecimal"/>
+    <field name="outflows_total" class="java.math.BigDecimal"/>
+    <field name="expected_amount" class="java.math.BigDecimal"/>
+    <field name="closing_amount" class="java.math.BigDecimal"/>
+    <field name="difference_amount" class="java.math.BigDecimal"/>
+    <field name="opened_by" class="java.lang.String"/>
+    <field name="closed_by" class="java.lang.String"/>
+
+    <title>
+        <band height="56">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="30"/>
+                <textElement textAlignment="Center">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Resumen de Caja]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="34" width="555" height="18"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Caja #" + $F{id} + " - Estado: " + $F{status}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <detail>
+        <band height="250">
+            <staticText>
+                <reportElement x="0" y="0" width="160" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Fecha de apertura]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="170" y="0" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{opening_date}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="24" width="160" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Fecha de cierre]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="170" y="24" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{closing_date}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="48" width="160" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Apertura realizada por]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="170" y="48" width="200" height="20"/>
+                <textFieldExpression><![CDATA[$F{opened_by}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="72" width="160" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Cierre realizado por]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="170" y="72" width="200" height="20"/>
+                <textFieldExpression><![CDATA[$F{closed_by}]]></textFieldExpression>
+            </textField>
+
+            <line>
+                <reportElement x="0" y="102" width="555" height="1"/>
+            </line>
+
+            <staticText>
+                <reportElement x="0" y="112" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Monto de apertura]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="210" y="112" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{opening_amount}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="136" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Total ventas]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="210" y="136" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{sales_total}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="160" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Entradas de efectivo]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="210" y="160" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{inflows_total}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="184" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Total compras]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="210" y="184" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{purchases_total}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="208" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Salidas de efectivo]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="210" y="208" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{outflows_total}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="355" y="112" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Saldo esperado]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="435" y="112" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{expected_amount}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="355" y="136" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Saldo contado]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="435" y="136" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{closing_amount}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="355" y="160" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Diferencia]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="435" y="160" width="120" height="20"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{difference_amount}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="355" y="184" width="200" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Observacion]]></text>
+            </staticText>
+            <textField isStretchWithOverflow="true">
+                <reportElement x="355" y="208" width="200" height="40"/>
+                <textFieldExpression><![CDATA[$F{observation}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

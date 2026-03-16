@@ -30,11 +30,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.JasperCompileManager;
 
 @Service
 public abstract class BaseService<T> {
@@ -119,7 +122,13 @@ public abstract class BaseService<T> {
             Resource resource = resourceLoader.getResource("classpath:" + reportPath);
             InputStream reportStream = resource.getInputStream();
 
-            JasperPrint jasperPrint = JasperFillManager.fillReport(reportStream, parameters, dataSource.getConnection());
+            JasperPrint jasperPrint;
+            if (reportPath.endsWith(".jrxml")) {
+                JasperReport compiledReport = JasperCompileManager.compileReport(reportStream);
+                jasperPrint = JasperFillManager.fillReport(compiledReport, parameters, dataSource.getConnection());
+            } else {
+                jasperPrint = JasperFillManager.fillReport(reportStream, parameters, dataSource.getConnection());
+            }
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             JasperExportManager.exportReportToPdfStream(jasperPrint, outputStream);
@@ -143,7 +152,7 @@ public abstract class BaseService<T> {
 
             // Si hay columnas relacionadas, añadimos el join
             if (!relatedColumns.isEmpty() && relatedEntity != null) {
-                Join<Object, Object> relatedJoin = root.join(relatedEntity);
+                Join<Object, Object> relatedJoin = root.join(relatedEntity, JoinType.LEFT);
 
                 for (String relatedColumn : relatedColumns) {
                     likePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(relatedJoin.get(relatedColumn).as(String.class)), "%" + searchTerm.toLowerCase() + "%"));

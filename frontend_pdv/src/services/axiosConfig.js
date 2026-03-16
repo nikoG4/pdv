@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { getApiBaseUrl } from '../lib/backend-url';
 
 const instance = axios.create({
-  baseURL: `http://${window.location.hostname}:8080/api`,
+  baseURL: getApiBaseUrl(),
 });
 
 

@@ -5,25 +5,11 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { ArrowLeftIcon } from '../ui/icons';
 import ProductService from '../../services/ProductService';
-import ClientService from './../../services/ClientService';
 import ProductImage from '../ui/product-image';
+import { normalizeDateInputValue } from '../../lib/date';
 
 const SaleProductsView = ({ selectedSale, setSale }) => {
-  const [clients, setClients] = useState([]);
   const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const result = await ClientService.getAllClients();
-        setClients(result.content);
-      } catch (error) {
-        console.error('Error fetching clients:', error);
-      }
-    };
-
-    fetchClients();
-  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -65,7 +51,7 @@ const SaleProductsView = ({ selectedSale, setSale }) => {
                 <Input
                   id="date"
                   type="date"
-                  value={selectedSale.date || new Date().toISOString().split('T')[0]}
+                  value={normalizeDateInputValue(selectedSale?.date)}
                   readOnly
                 />
               </div>
@@ -74,7 +60,7 @@ const SaleProductsView = ({ selectedSale, setSale }) => {
                 <Input
                   id="client"
                   type="text"
-                  value={clients.find(client => client.id === selectedSale.client?.id)?.name || ''}
+                  value={selectedSale?.client?.name || 'Cliente contado'}
                   readOnly
                 />
               </div>

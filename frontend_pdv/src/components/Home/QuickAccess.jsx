@@ -4,6 +4,7 @@ import { useContext } from "react";
 import { AuthContext } from "./../../services/Auth/AuthContext"; // Importar el contexto de autenticación
 
 const quickAccessItems = [
+  { path: "/cash-registers", text: "Caja", icon: <CurrenciesIcon className="h-8 w-8" />, permission: "CashRegister.all" },
   { path: "/sales", text: "Ventas", icon: <ClipboardIcon className="h-8 w-8" />, permission: "ProductSale.all" },
   { path: "/purchases", text: "Compras", icon: <ClipboardIcon className="h-8 w-8" />, permission: "ProductPurchase.all" },
   { path: "/products", text: "Productos", icon: <PackageIcon className="h-8 w-8" />, permission: "Product.all" },

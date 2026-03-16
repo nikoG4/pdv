@@ -5,6 +5,7 @@ import com.pdv.models.ProductPurchaseItem;
 import com.pdv.models.User;
 import com.pdv.repositories.ProductPurchaseRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ public class ProductPurchaseService extends BaseService<ProductPurchase> {
     public ProductPurchase save(ProductPurchase purchase) {
         User currentUser = this.userInfoService.getCurrentUser();
         purchase.setCreatedBy(currentUser);
+        purchase.setDate(resolveDate(purchase.getDate(), null));
 
         ProductPurchase savedPurchase = this.repository.save(purchase);
 
@@ -49,7 +51,7 @@ public class ProductPurchaseService extends BaseService<ProductPurchase> {
 
         String oldProductPurchase = purchaseFound.toString();
 
-        purchaseFound.setDate(purchase.getDate());
+        purchaseFound.setDate(resolveDate(purchase.getDate(), purchaseFound.getDate()));
         purchaseFound.setInvoiceNumber(purchase.getInvoiceNumber());
         purchaseFound.setTotal(purchase.getTotal());
         purchaseFound.setSupplier(purchase.getSupplier());
@@ -76,6 +78,18 @@ public class ProductPurchaseService extends BaseService<ProductPurchase> {
          this.log("update", newProductPurchase, oldProductPurchase, currentUser);
 
         return updatedPurchase;
+    }
+
+    private LocalDate resolveDate(LocalDate requestedDate, LocalDate currentDate) {
+        if (requestedDate != null) {
+            return requestedDate;
+        }
+
+        if (currentDate != null) {
+            return currentDate;
+        }
+
+        return LocalDate.now();
     }
 
 

@@ -1,22 +1,6 @@
+/* eslint-disable react/prop-types */
 import { NoImageIcon } from './icons';
-import axiosInstance from '../../services/axiosConfig';
-
-const resolveImageUrl = (src) => {
-  if (!src) {
-    return '';
-  }
-
-  if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
-    return src;
-  }
-
-  const apiBaseUrl = axiosInstance.defaults.baseURL || '';
-  const serverBaseUrl = apiBaseUrl.endsWith('/api')
-    ? apiBaseUrl.slice(0, -4)
-    : apiBaseUrl;
-
-  return `${serverBaseUrl}${src}`;
-};
+import { resolveBackendUrl } from '../../lib/backend-url';
 
 const ProductImage = ({ src, alt, className = '' }) => {
   if (!src) {
@@ -29,7 +13,7 @@ const ProductImage = ({ src, alt, className = '' }) => {
 
   return (
     <img
-      src={resolveImageUrl(src)}
+      src={resolveBackendUrl(src)}
       alt={alt}
       className={`rounded-md object-cover bg-gray-100 ${className}`}
     />

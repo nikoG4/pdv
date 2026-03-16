@@ -9,11 +9,12 @@ import ProductImage from '../ui/product-image';
 import ClientService from '../../services/ClientService';
 import ProductService from '../../services/ProductService';
 import nextgenIcon from '../../assets/nextgen.svg';
-import axiosInstance from '../../services/axiosConfig';
 import { AuthContext } from '../../services/Auth/AuthContext';
+import { resolveBackendUrl } from '../../lib/backend-url';
+import { normalizeDateInputValue } from '../../lib/date';
 
-const quickCashAmounts = [5000, 10000, 20000, 50000, 100000];
 const productPageSize = 12;
+const defaultQuickCashAmounts = [5000, 10000, 20000, 50000, 100000];
 
 const currencyFormatter = new Intl.NumberFormat('es-PY', {
   style: 'currency',
@@ -23,26 +24,25 @@ const currencyFormatter = new Intl.NumberFormat('es-PY', {
 
 const formatCurrency = (value) => currencyFormatter.format(Number(value) || 0).replace('PYG', 'Gs.');
 
+const parseCashDenominations = (value) => {
+  const parsed = (value || '')
+    .split(/\r?\n|,/)
+    .map((item) => Number(String(item).replace(/[^\d]/g, '')))
+    .filter((item) => Number.isFinite(item) && item > 0);
+
+  if (parsed.length === 0) {
+    return defaultQuickCashAmounts;
+  }
+
+  return [...new Set(parsed)].sort((a, b) => a - b);
+};
+
 const getInitialClient = (selectedSale, clients) => {
   if (!selectedSale?.client) {
     return null;
   }
 
   return clients.find((client) => client.id === selectedSale.client.id) || selectedSale.client;
-};
-
-const getFullImageUrl = (url) => {
-  if (!url) {
-    return '';
-  }
-
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-    return url;
-  }
-
-  const baseUrl = axiosInstance.defaults.baseURL || '';
-  const serverBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
-  return `${serverBaseUrl}${url}`;
 };
 
 const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onBack }) => {
@@ -56,7 +56,7 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
   const [productTotalElements, setProductTotalElements] = useState(0);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState(selectedSale?.items || []);
-  const [saleDate, setSaleDate] = useState(selectedSale?.date || new Date().toISOString().split('T')[0]);
+  const [saleDate, setSaleDate] = useState(normalizeDateInputValue(selectedSale?.date));
   const [invoiceNumber, setInvoiceNumber] = useState(selectedSale?.invoiceNumber || '');
   const [printOnSave, setPrintOnSave] = useState(true);
   const [cash, setCash] = useState(selectedSale?.total || 0);
@@ -65,6 +65,9 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoUrl, setLogoUrl] = useState(localStorage.getItem('logoUrl') || '');
   const [appName, setAppName] = useState(localStorage.getItem('appName') || 'Punto de Venta');
+  const [quickCashAmounts, setQuickCashAmounts] = useState(() =>
+    parseCashDenominations(localStorage.getItem('cashDenominations'))
+  );
   const isNewSale = useMemo(() => Object.keys(selectedSale || {}).length === 0, [selectedSale]);
   const searchInputRef = useRef(null);
 
@@ -97,6 +100,7 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
     const syncConfig = () => {
       setLogoUrl(localStorage.getItem('logoUrl') || '');
       setAppName(localStorage.getItem('appName') || 'Punto de Venta');
+      setQuickCashAmounts(parseCashDenominations(localStorage.getItem('cashDenominations')));
     };
 
     window.addEventListener('app-config-changed', syncConfig);
@@ -113,7 +117,7 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
 
   useEffect(() => {
     setSelectedProducts(selectedSale?.items || []);
-    setSaleDate(selectedSale?.date || new Date().toISOString().split('T')[0]);
+    setSaleDate(normalizeDateInputValue(selectedSale?.date));
     setInvoiceNumber(selectedSale?.invoiceNumber || '');
     setCash(selectedSale?.total || 0);
   }, [selectedSale]);
@@ -277,11 +281,6 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
       return;
     }
 
-    if (!selectedClient) {
-      alert('Cliente es requerido');
-      return;
-    }
-
     if (selectedProducts.length === 0) {
       alert('Debe agregar al menos un producto');
       return;
@@ -300,7 +299,7 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
     const salePayload = {
       id: selectedSale?.id,
       date: saleDate,
-      client: selectedClient,
+      client: selectedClient || null,
       invoiceNumber,
       items: selectedProducts.map((item) => ({
         ...item,
@@ -348,7 +347,7 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
         <aside className="hidden xl:flex xl:h-full xl:flex-col xl:items-center xl:rounded-[2rem] xl:bg-gradient-to-b xl:from-cyan-600 xl:to-sky-800 xl:px-3 xl:py-5 xl:text-white xl:shadow-xl">
           <div className="mb-8 flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white/20 p-2">
             <img
-              src={getFullImageUrl(logoUrl) || nextgenIcon}
+              src={resolveBackendUrl(logoUrl) || nextgenIcon}
               alt={appName}
               className="h-full w-full object-contain"
             />
@@ -431,7 +430,7 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
                 </div>
                 <div>
                   <Label htmlFor="sale-client" className="mb-1 block text-xs uppercase tracking-[0.2em] text-slate-500">
-                    Cliente
+                    Cliente (opcional)
                   </Label>
                   <Select
                     inputId="sale-client"
@@ -440,7 +439,8 @@ const SaleProductsPos = ({ selectedSale, handleSaleUpdate, handleSaleCreate, onB
                     onChange={setSelectedClient}
                     getOptionLabel={(option) => option.name}
                     getOptionValue={(option) => String(option.id)}
-                    placeholder="Seleccionar cliente"
+                    placeholder="Cliente contado"
+                    isClearable
                     className="text-sm"
                     styles={{
                       control: (base) => ({

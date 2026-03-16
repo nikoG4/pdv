@@ -1,5 +1,7 @@
 package com.pdv.repositories;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -47,4 +49,22 @@ public interface ProductRepository extends BaseRepository<Product, Long> {
 	Page<Product> findRankedProducts(@Param("q") String q, Pageable pageable);
 
 	Optional<Product> findByCode(@Param("code") String code);
+
+	@Query("SELECT COUNT(p) FROM Product p WHERE p.deletedAt IS NULL")
+	Long countActive();
+
+	@Query(value = """
+			SELECT
+				p.id as id,
+				p.name as name,
+				p.code as code,
+				p.stock as stock
+			FROM products p
+			WHERE p.deleted_at IS NULL
+			  AND p.stock_control = TRUE
+			  AND p.stock <= 10
+			ORDER BY p.stock ASC
+			LIMIT 10
+			""", nativeQuery = true)
+	List<Map<String, Object>> findLowStockProducts();
 }

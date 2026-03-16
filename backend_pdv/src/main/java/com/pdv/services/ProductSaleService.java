@@ -8,6 +8,7 @@ import com.pdv.services.PrinterService.PrintAlignment;
 import com.pdv.services.PrinterService.PrintLine;
 
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class ProductSaleService extends BaseService<ProductSale> {
     public ProductSale save(ProductSale sale) {
         User currentUser = this.userInfoService.getCurrentUser();
         sale.setCreatedBy(currentUser);
+        sale.setDate(resolveDate(sale.getDate(), null));
 
         ProductSale savedSale = this.repository.save(sale);
 
@@ -57,7 +59,7 @@ public class ProductSaleService extends BaseService<ProductSale> {
 
         String oldProductSale = saleFound.toString();
 
-        saleFound.setDate(sale.getDate());
+        saleFound.setDate(resolveDate(sale.getDate(), saleFound.getDate()));
         saleFound.setInvoiceNumber(sale.getInvoiceNumber());
         saleFound.setTotal(sale.getTotal());
         saleFound.setClient(sale.getClient());
@@ -100,9 +102,9 @@ public class ProductSaleService extends BaseService<ProductSale> {
         // Encabezado del ticket
         printLines.add(new PrintLine("Comprobante de Venta #" + sale.getId() , PrintAlignment.CENTER));
         printLines.add(new PrintLine("--------------------------------", PrintAlignment.CENTER));
-        printLines.add(new PrintLine("Fecha: " + sale.getDate().format(dateFormatter), PrintAlignment.LEFT));
+        printLines.add(new PrintLine("Fecha: " + resolveDate(sale.getDate(), null).format(dateFormatter), PrintAlignment.LEFT));
         printLines.add(new PrintLine("Factura Nro.: " + sale.getInvoiceNumber(), PrintAlignment.LEFT));
-        printLines.add(new PrintLine("Cliente: " + sale.getClient().getName(), PrintAlignment.LEFT));
+        printLines.add(new PrintLine("Cliente: " + (sale.getClient() != null ? sale.getClient().getName() : "Cliente contado"), PrintAlignment.LEFT));
         printLines.add(new PrintLine("--------------------------------", PrintAlignment.CENTER));
 
         // Detalle de productos
@@ -142,6 +144,18 @@ public class ProductSaleService extends BaseService<ProductSale> {
 
         // Imprimir el contenido
         this.printerService.printReceipt(printLines);
+    }
+
+    private LocalDate resolveDate(LocalDate requestedDate, LocalDate currentDate) {
+        if (requestedDate != null) {
+            return requestedDate;
+        }
+
+        if (currentDate != null) {
+            return currentDate;
+        }
+
+        return LocalDate.now();
     }
 
 }

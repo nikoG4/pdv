@@ -8,6 +8,7 @@ import Select from 'react-select'
 import ProductService from '../../services/ProductService'
 import ClientService from './../../services/ClientService'
 import ProductImage from '../ui/product-image'
+import { normalizeDateInputValue } from '../../lib/date'
 
 const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, setSale }) => {
 	const [clients, setClients] = useState([])
@@ -21,6 +22,10 @@ const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, se
 	const [printOnSave, setPrintOnSave] = useState(true);
 	const [barcode, setBarcode] = useState("");
 	const [lastKeyTime, setLastKeyTime] = useState(Date.now());
+
+	useEffect(() => {
+		setSelectedClient(selectedSale?.client || null)
+	}, [selectedSale])
 
 
 	useEffect(() => {
@@ -199,9 +204,6 @@ const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, se
 		if (!formData.get('date')) {
 			errors.date = 'Fecha es requerido'
 		}
-		if (!selectedClient) {
-			errors.client = 'Cliente es requerido'
-		}
 		// if (!formData.get('invoice')) {
 		// 	errors.invoice = 'Factura es requerido'
 		// }
@@ -228,7 +230,7 @@ const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, se
 		const sale = {
 			id: selectedSale?.id,
 			date: formData.get('date'),
-			client: selectedClient,
+			client: selectedClient || null,
 			invoiceNumber: formData.get('invoice'),
 			items: selectedProducts.map((p) => ({
 				...p,
@@ -276,18 +278,19 @@ const SaleProductsForm = ({ selectedSale, handleSaleUpdate, handleSaleCreate, se
 									id="date"
 									name="date"
 									type="date"
-									defaultValue={selectedSale?.date || new Date().toISOString().split('T')[0]}
+									defaultValue={normalizeDateInputValue(selectedSale?.date)}
 								/>
 							</div>
 							<div className="grid gap-2">
-								<Label htmlFor="client">Cliente</Label>
+								<Label htmlFor="client">Cliente (opcional)</Label>
 								<Select
 									id="client"
 									getOptionLabel={(option) => option.name}
 									getOptionValue={(option) => option.id}
 									options={clients.map((s) => ({ id: s.id, name: s.name }))}
 									onChange={(selectedOption) => setSelectedClient(selectedOption)}
-									value={clients.find((option) => option.id === selectedSale?.client?.id)}
+									value={selectedClient}
+									isClearable
 								/>
 							</div>
 							<div className="grid gap-2">

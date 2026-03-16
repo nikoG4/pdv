@@ -9,6 +9,7 @@ import Select from "react-select";
 import ProductService from "../../services/ProductService";
 import SupplierService from "./../../services/SupplierService";
 import ProductImage from "../ui/product-image";
+import { normalizeDateInputValue } from "../../lib/date";
 
 const PurchaseProductsForm = ({ selectedPurchase, handlePurchaseUpdate, handlePurchaseCreate, setPurchase }) => {
   const [suppliers, setSuppliers] = useState([]);
@@ -278,7 +279,7 @@ const PurchaseProductsForm = ({ selectedPurchase, handlePurchaseUpdate, handlePu
                   id="date"
                   name="date"
                   type="date"
-                  defaultValue={ selectedPurchase?.date || new Date().toISOString().split("T")[0]}
+                  defaultValue={normalizeDateInputValue(selectedPurchase?.date)}
                 />
               </div>
               <div className="grid gap-2">

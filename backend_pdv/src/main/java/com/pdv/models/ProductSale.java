@@ -22,8 +22,8 @@ public class ProductSale extends Auditable {
     @Column(name = "invoice_number")
     private String invoiceNumber;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "client_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
+    @JoinColumn(name = "client_id")
     private Client client;
 
     @Column(name = "total", nullable = false)

@@ -5,8 +5,10 @@ import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import Select from 'react-select';
+import { Textarea } from '../ui/textarea';
 import AppConfigService from '../../services/AppConfigService';
 import UserService from '../../services/UserService';
+import { resolveBackendUrl } from '../../lib/backend-url';
 
 const Config = () => {
   const [userOptions, setUserOptions] = useState([]);
@@ -17,6 +19,7 @@ const Config = () => {
   const [logoPreview, setLogoPreview] = useState(localStorage.getItem('logoUrl') || '');
   const [faviconPreview, setFaviconPreview] = useState(localStorage.getItem('faviconUrl') || '');
   const [selectedPosUsers, setSelectedPosUsers] = useState([]);
+  const [cashDenominationsText, setCashDenominationsText] = useState(localStorage.getItem('cashDenominations') || '5000\n10000\n20000\n50000\n100000');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -27,11 +30,7 @@ const Config = () => {
       .filter(Boolean);
 
   const getFullImageUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-      return url;
-    }
-    return url;
+    return resolveBackendUrl(url);
   };
 
   useEffect(() => {
@@ -74,6 +73,7 @@ const Config = () => {
       setAppName(config.appName || 'Punto de Venta');
       setLogoPreview(config.logoUrl || '');
       setFaviconPreview(config.faviconUrl || '');
+      setCashDenominationsText(config.cashDenominations || '5000\n10000\n20000\n50000\n100000');
       const configuredUsers = parseConfiguredUsers(config.posDefaultUsers || '');
       setSelectedPosUsers(
         configuredUsers.map((username) => ({
@@ -86,6 +86,7 @@ const Config = () => {
       localStorage.setItem('logoUrl', config.logoUrl || '');
       localStorage.setItem('faviconUrl', config.faviconUrl || '');
       localStorage.setItem('salesPosDefaultUsers', config.posDefaultUsers || '');
+      localStorage.setItem('cashDenominations', config.cashDenominations || '5000\n10000\n20000\n50000\n100000');
 
       document.title = config.appName || 'Punto de Venta';
       if (config.faviconUrl) {
@@ -143,6 +144,7 @@ const Config = () => {
       const formData = new FormData();
       formData.append('appName', appName || 'Punto de Venta');
       formData.append('posDefaultUsers', selectedPosUsers.map((user) => user.value).join('\n'));
+      formData.append('cashDenominations', cashDenominationsText || '5000\n10000\n20000\n50000\n100000');
 
       if (logoFile) {
         formData.append('logo', logoFile);
@@ -205,6 +207,20 @@ const Config = () => {
                 />
                 <p className="text-xs text-muted-foreground">
                   Los usuarios seleccionados abriran el modulo Ventas directamente en modo POS.
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="cashDenominations">Billetes rapidos del POS</Label>
+                <Textarea
+                  id="cashDenominations"
+                  rows={5}
+                  value={cashDenominationsText}
+                  onChange={(event) => setCashDenominationsText(event.target.value)}
+                  placeholder={'5000\n10000\n20000\n50000\n100000'}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ingresa un monto por linea. Se usaran como botones rapidos de efectivo en el modo POS.
                 </p>
               </div>
             </div>

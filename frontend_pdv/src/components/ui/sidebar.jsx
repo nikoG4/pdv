@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // Sidebar.js
 import { Link } from "wouter";
 import { useState, useEffect, useContext } from "react";
@@ -5,6 +6,7 @@ import nextgenIcon from '../../assets/nextgen.svg';
 import { AuthContext } from "./../../services/Auth/AuthContext";
 import { MODULE_GROUPS } from './../../services/modules';
 import { INDEPENDENT_MODULES } from './../../services/modules';
+import { resolveBackendUrl } from '../../lib/backend-url';
 
 
 
@@ -19,26 +21,17 @@ const Sidebar = ({ isOpen }) => {
     return acc;
   }, {});
   const [openGroups, setOpenGroups] = useState(initialOpenGroups);
-
-  const getFullImageUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-      return url;
-    }
-    return url;
-  };
-
   useEffect(() => {
     const storedAppName = localStorage.getItem('appName');
     const storedLogoUrl = localStorage.getItem('logoUrl');
     if (storedAppName) setAppName(storedAppName);
-    if (storedLogoUrl) setLogoUrl(getFullImageUrl(storedLogoUrl));
+    if (storedLogoUrl) setLogoUrl(resolveBackendUrl(storedLogoUrl));
 
     const handleStorageChange = () => {
       const newAppName = localStorage.getItem('appName');
       const newLogoUrl = localStorage.getItem('logoUrl');
       if (newAppName) setAppName(newAppName);
-      if (newLogoUrl) setLogoUrl(getFullImageUrl(newLogoUrl));
+      if (newLogoUrl) setLogoUrl(resolveBackendUrl(newLogoUrl));
     };
 
     window.addEventListener('storage', handleStorageChange);

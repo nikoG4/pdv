@@ -65,7 +65,12 @@ VALUES
     ('appName', 'Punto de Venta', NOW()),
     ('logoUrl', '', NOW()),
     ('faviconUrl', '', NOW()),
-    ('posDefaultUsers', '', NOW())
+    ('posDefaultUsers', '', NOW()),
+    ('cashDenominations', '5000
+10000
+20000
+50000
+100000', NOW())
 ON CONFLICT DO NOTHING;
 
 -- Create index for product code
@@ -447,3 +452,57 @@ insert
 update
     on
     public.products for each row execute function generate_unique_barcode()
+
+
+CREATE TABLE IF NOT EXISTS cash_registers (
+    id SERIAL PRIMARY KEY,
+    opening_date DATE NOT NULL,
+    closing_date DATE,
+    opening_amount NUMERIC(19, 2) NOT NULL,
+    expected_amount NUMERIC(19, 2),
+    closing_amount NUMERIC(19, 2),
+    difference_amount NUMERIC(19, 2),
+    status VARCHAR(20) NOT NULL,
+    observation TEXT,
+    created_by BIGINT REFERENCES public.users(id),
+    deleted_id BIGINT REFERENCES public.users(id),
+    updated_by BIGINT REFERENCES public.users(id),
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP NULL,
+    deleted_at TIMESTAMP NULL
+);
+
+INSERT INTO permissions (name, description, module)
+VALUES
+    ('CashRegister.active', 'Listar cajas activas', 'Caja'),
+    ('CashRegister.delete', 'Eliminar caja', 'Caja'),
+    ('CashRegister.create', 'Abrir caja', 'Caja'),
+    ('CashRegister.update', 'Cerrar o actualizar caja', 'Caja'),
+    ('CashRegister.all', 'Ver todas las cajas', 'Caja'),
+    ('CashRegister.read', 'Ver caja', 'Caja')
+ON CONFLICT (name) DO NOTHING;
+
+ALTER TABLE IF EXISTS public.products_sales
+    ALTER COLUMN client_id DROP NOT NULL;
+
+-- Dashboard Permissions
+INSERT INTO permissions (name, description, module)
+VALUES
+    ('Dashboard.active', 'Listar dashboard activo', 'Dashboard'),
+    ('Dashboard.delete', 'Eliminar dashboard', 'Dashboard'),
+    ('Dashboard.create', 'Crear dashboard', 'Dashboard'),
+    ('Dashboard.update', 'Actualizar dashboard', 'Dashboard'),
+    ('Dashboard.all', 'Ver todos', 'Dashboard'),
+    ('Dashboard.read', 'Ver dashboard', 'Dashboard')
+ON CONFLICT (name) DO NOTHING;
+
+-- Dashboard Permissions
+INSERT INTO permissions (name, description, module)
+VALUES
+    ('Dashboard.active', 'Listar dashboard activo', 'Dashboard'),
+    ('Dashboard.delete', 'Eliminar dashboard', 'Dashboard'),
+    ('Dashboard.create', 'Crear dashboard', 'Dashboard'),
+    ('Dashboard.update', 'Actualizar dashboard', 'Dashboard'),
+    ('Dashboard.all', 'Ver todos', 'Dashboard'),
+    ('Dashboard.read', 'Ver dashboard', 'Dashboard')
+ON CONFLICT (name) DO NOTHING;

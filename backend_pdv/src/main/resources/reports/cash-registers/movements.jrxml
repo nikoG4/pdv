@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="cash_register_movements"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20">
+
+    <parameter name="cashRegisterId" class="java.lang.Integer"/>
+
+    <queryString language="SQL">
+        <![CDATA[
+            SELECT movement_date, movement_type, reference_id, reference, party, description, inflow, outflow
+            FROM (
+                SELECT
+                    cr.opening_date AS movement_date,
+                    'APERTURA' AS movement_type,
+                    cr.id AS reference_id,
+                    CONCAT('Caja #', cr.id) AS reference,
+                    COALESCE(u.username, 'Sistema') AS party,
+                    COALESCE(cr.observation, 'Apertura de caja') AS description,
+                    CAST(cr.opening_amount AS NUMERIC(19,2)) AS inflow,
+                    CAST(0 AS NUMERIC(19,2)) AS outflow,
+                    0 AS sort_order
+                FROM cash_registers cr
+                LEFT JOIN users u ON u.id = cr.created_by
+                WHERE cr.id = $P{cashRegisterId}
+
+                UNION ALL
+
+                SELECT
+                    ps.date AS movement_date,
+                    'VENTA' AS movement_type,
+                    ps.id AS reference_id,
+                    COALESCE(ps.invoice_number, CONCAT('Venta #', ps.id)) AS reference,
+                    COALESCE(c.name, 'Cliente contado') AS party,
+                    'Venta de productos' AS description,
+                    CAST(ps.total AS NUMERIC(19,2)) AS inflow,
+                    CAST(0 AS NUMERIC(19,2)) AS outflow,
+                    1 AS sort_order
+                FROM products_sales ps
+                LEFT JOIN clients c ON c.id = ps.client_id
+                JOIN cash_registers cr ON cr.id = $P{cashRegisterId}
+                WHERE ps.deleted_at IS NULL
+                  AND ps.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+
+                UNION ALL
+
+                SELECT
+                    pp.date AS movement_date,
+                    'COMPRA' AS movement_type,
+                    pp.id AS reference_id,
+                    COALESCE(pp.invoice_number, CONCAT('Compra #', pp.id)) AS reference,
+                    COALESCE(s.name, 'Proveedor') AS party,
+                    'Compra de productos' AS description,
+                    CAST(0 AS NUMERIC(19,2)) AS inflow,
+                    CAST(pp.total AS NUMERIC(19,2)) AS outflow,
+                    2 AS sort_order
+                FROM products_purchases pp
+                LEFT JOIN suppliers s ON s.id = pp.supplier_id
+                JOIN cash_registers cr ON cr.id = $P{cashRegisterId}
+                WHERE pp.deleted_at IS NULL
+                  AND pp.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+
+                UNION ALL
+
+                SELECT
+                    ci.date AS movement_date,
+                    'ENTRADA' AS movement_type,
+                    ci.id AS reference_id,
+                    CONCAT('Entrada #', ci.id) AS reference,
+                    'Caja' AS party,
+                    COALESCE(ci.description, 'Entrada de efectivo') AS description,
+                    CAST(ci.amount AS NUMERIC(19,2)) AS inflow,
+                    CAST(0 AS NUMERIC(19,2)) AS outflow,
+                    3 AS sort_order
+                FROM cash_inflows ci
+                JOIN cash_registers cr ON cr.id = $P{cashRegisterId}
+                WHERE ci.deleted_at IS NULL
+                  AND ci.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+
+                UNION ALL
+
+                SELECT
+                    co.date AS movement_date,
+                    'SALIDA' AS movement_type,
+                    co.id AS reference_id,
+                    CONCAT('Salida #', co.id) AS reference,
+                    'Caja' AS party,
+                    COALESCE(co.description, 'Salida de efectivo') AS description,
+                    CAST(0 AS NUMERIC(19,2)) AS inflow,
+                    CAST(co.amount AS NUMERIC(19,2)) AS outflow,
+                    4 AS sort_order
+                FROM cash_outflows co
+                JOIN cash_registers cr ON cr.id = $P{cashRegisterId}
+                WHERE co.deleted_at IS NULL
+                  AND co.date BETWEEN cr.opening_date AND COALESCE(cr.closing_date, CURRENT_DATE)
+            ) movements
+            ORDER BY movement_date ASC, sort_order ASC, reference_id ASC
+        ]]>
+    </queryString>
+
+    <field name="movement_date" class="java.sql.Date"/>
+    <field name="movement_type" class="java.lang.String"/>
+    <field name="reference_id" class="java.lang.Long"/>
+    <field name="reference" class="java.lang.String"/>
+    <field name="party" class="java.lang.String"/>
+    <field name="description" class="java.lang.String"/>
+    <field name="inflow" class="java.math.BigDecimal"/>
+    <field name="outflow" class="java.math.BigDecimal"/>
+
+    <variable name="RUNNING_BALANCE" class="java.math.BigDecimal" calculation="Sum">
+        <initialValueExpression><![CDATA[new java.math.BigDecimal("0.00")]]></initialValueExpression>
+        <variableExpression><![CDATA[$F{inflow}.subtract($F{outflow})]]></variableExpression>
+    </variable>
+
+    <title>
+        <band height="40">
+            <staticText>
+                <reportElement x="0" y="0" width="802" height="28"/>
+                <textElement textAlignment="Center">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Libro de Movimientos de Caja]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="24">
+            <staticText><reportElement x="0" y="0" width="70" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Fecha]]></text></staticText>
+            <staticText><reportElement x="70" y="0" width="80" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Tipo]]></text></staticText>
+            <staticText><reportElement x="150" y="0" width="120" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Referencia]]></text></staticText>
+            <staticText><reportElement x="270" y="0" width="120" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Parte]]></text></staticText>
+            <staticText><reportElement x="390" y="0" width="180" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Descripcion]]></text></staticText>
+            <staticText><reportElement x="570" y="0" width="70" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Ingreso]]></text></staticText>
+            <staticText><reportElement x="640" y="0" width="70" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Egreso]]></text></staticText>
+            <staticText><reportElement x="710" y="0" width="92" height="24"/><textElement textAlignment="Center"><font isBold="true"/></textElement><text><![CDATA[Saldo]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="22">
+            <textField pattern="dd/MM/yyyy"><reportElement x="0" y="0" width="70" height="22"/><textElement textAlignment="Center"/><textFieldExpression><![CDATA[$F{movement_date}]]></textFieldExpression></textField>
+            <textField><reportElement x="70" y="0" width="80" height="22"/><textElement textAlignment="Center"/><textFieldExpression><![CDATA[$F{movement_type}]]></textFieldExpression></textField>
+            <textField><reportElement x="150" y="0" width="120" height="22"/><textFieldExpression><![CDATA[$F{reference}]]></textFieldExpression></textField>
+            <textField><reportElement x="270" y="0" width="120" height="22"/><textFieldExpression><![CDATA[$F{party}]]></textFieldExpression></textField>
+            <textField><reportElement x="390" y="0" width="180" height="22"/><textFieldExpression><![CDATA[$F{description}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="570" y="0" width="70" height="22"/><textElement textAlignment="Right"/><textFieldExpression><![CDATA[$F{inflow}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="640" y="0" width="70" height="22"/><textElement textAlignment="Right"/><textFieldExpression><![CDATA[$F{outflow}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="710" y="0" width="92" height="22"/><textElement textAlignment="Right"/><textFieldExpression><![CDATA[$V{RUNNING_BALANCE}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+</jasperReport>

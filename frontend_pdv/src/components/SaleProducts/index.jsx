@@ -243,7 +243,7 @@ const SaleProducts = () => {
       callback: (date) => new Date(`${date} `).toLocaleDateString('es-ES', { timeZone: 'America/Asuncion' }),
     },
     { name: 'invoiceNumber', label: 'Numero de Factura' },
-    { name: 'client.name', label: 'Cliente' },
+    { name: 'client', label: 'Cliente', callback: (client) => client?.name || 'Cliente contado' },
     {
       name: 'total',
       label: 'Total',

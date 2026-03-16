@@ -73,6 +73,7 @@ const TableData = ({ data = [], columns = [], actions = [], totalElements = 0, p
 // Componente Dropdown
 const Dropdown = ({ actions, rowData }) => {
   const dropdownRef = useRef(null);
+  const visibleActions = actions?.filter((action) => (action.visible ? action.visible(rowData) : true)) || [];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -101,7 +102,7 @@ const Dropdown = ({ actions, rowData }) => {
       </summary>
 
       <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-        {actions?.map((a, index) => (
+        {visibleActions.map((a, index) => (
           <li key={index}>
             <a
               onClick={() => a.onClick(rowData)}

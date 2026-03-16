@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { ArrowLeftIcon } from '../ui/icons';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
+import { normalizeDateInputValue } from '../../lib/date';
 
 const Form = ({ selectedCashInflow, handleCashInflowUpdate, handleCashInflowCreate, setCashInflow }) => {
 
@@ -75,7 +76,7 @@ const Form = ({ selectedCashInflow, handleCashInflowUpdate, handleCashInflowCrea
                                         id="date"
                                         name="date"
                                         type="date"
-                                        defaultValue={selectedCashInflow?.date ? selectedCashInflow.date.slice(0, 10) : ''}
+                                        defaultValue={normalizeDateInputValue(selectedCashInflow?.date)}
                                         required
                                     />
                                 </div>

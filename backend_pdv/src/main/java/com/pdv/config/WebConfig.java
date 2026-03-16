@@ -10,8 +10,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig {
 
-    @Value("${app.allowed.origins:http://localhost:5175}")
-    private String[] allowedOrigins;
+    @Value("${app.allowed.origin-patterns:*}")
+    private String[] allowedOriginPatterns;
 
     @Bean
     WebMvcConfigurer corsConfigurer() {
@@ -19,9 +19,10 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins(allowedOrigins)
+                        .allowedOriginPatterns(allowedOriginPatterns)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                         .allowedHeaders("*")
+                        .exposedHeaders("*")
                         .allowCredentials(true);
             }
         };

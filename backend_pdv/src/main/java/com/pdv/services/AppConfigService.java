@@ -17,6 +17,8 @@ public class AppConfigService extends BaseService<AppConfig> {
     public static final String LOGO_URL_KEY = "logoUrl";
     public static final String FAVICON_URL_KEY = "faviconUrl";
     public static final String POS_DEFAULT_USERS_KEY = "posDefaultUsers";
+    public static final String CASH_DENOMINATIONS_KEY = "cashDenominations";
+    public static final String DEFAULT_CASH_DENOMINATIONS = "5000\n10000\n20000\n50000\n100000";
 
     @Autowired
     private AppConfigRepository appConfigRepository;
@@ -33,16 +35,18 @@ public class AppConfigService extends BaseService<AppConfig> {
         config.put(LOGO_URL_KEY, getValue(LOGO_URL_KEY, ""));
         config.put(FAVICON_URL_KEY, getValue(FAVICON_URL_KEY, ""));
         config.put(POS_DEFAULT_USERS_KEY, getValue(POS_DEFAULT_USERS_KEY, ""));
+        config.put(CASH_DENOMINATIONS_KEY, getValue(CASH_DENOMINATIONS_KEY, DEFAULT_CASH_DENOMINATIONS));
         return config;
     }
 
-    public void saveConfig(String appName, String logoUrl, String faviconUrl, String posDefaultUsers) {
+    public void saveConfig(String appName, String logoUrl, String faviconUrl, String posDefaultUsers, String cashDenominations) {
         ensureDefaults();
 
         saveValue(APP_NAME_KEY, appName == null || appName.isBlank() ? "Punto de Venta" : appName);
         saveValue(LOGO_URL_KEY, logoUrl == null ? "" : logoUrl);
         saveValue(FAVICON_URL_KEY, faviconUrl == null ? "" : faviconUrl);
         saveValue(POS_DEFAULT_USERS_KEY, posDefaultUsers == null ? "" : posDefaultUsers);
+        saveValue(CASH_DENOMINATIONS_KEY, cashDenominations == null || cashDenominations.isBlank() ? DEFAULT_CASH_DENOMINATIONS : cashDenominations);
     }
 
     public String getValue(String key, String defaultValue) {
@@ -67,6 +71,7 @@ public class AppConfigService extends BaseService<AppConfig> {
         ensureValue(LOGO_URL_KEY, "");
         ensureValue(FAVICON_URL_KEY, "");
         ensureValue(POS_DEFAULT_USERS_KEY, "");
+        ensureValue(CASH_DENOMINATIONS_KEY, DEFAULT_CASH_DENOMINATIONS);
     }
 
     private void ensureValue(String key, String defaultValue) {

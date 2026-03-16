@@ -29,14 +29,14 @@ ZXMgLDE2Myw0MSw3MDQxNGM0My1jYzU0LTQzYzUtODE1NC0zYzRjMmRjYzA5MDc7]]>
 	products_sales.total,
 	products_sales.date,
 	products_sales.invoice_number,
-	clients.name AS clientname,
+	COALESCE(clients.name, 'Cliente contado') AS clientname,
 	users.username
 FROM sale_items
 	INNER JOIN products_sales ON 
 	 sale_items.sale_id = products_sales.id 
 	INNER JOIN products ON 
 	 sale_items.product_id = products.id 
-	INNER JOIN clients ON 
+	LEFT JOIN clients ON 
 	 products_sales.client_id = clients.id 
 	INNER JOIN users ON 
 	 products_sales.created_by = users.id 

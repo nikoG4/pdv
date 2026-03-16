@@ -1,6 +1,7 @@
 package com.pdv.services;
 
 import java.io.ByteArrayInputStream;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,15 +27,33 @@ public class CashInflowService extends BaseService<CashInflow> {
     }
 
     @Override
+    public CashInflow save(CashInflow cashInflow) {
+        cashInflow.setDate(resolveDate(cashInflow.getDate(), null));
+        return super.save(cashInflow);
+    }
+
+    @Override
     public CashInflow update(CashInflow cashInflow, Long id) {
         CashInflow currentCashInflow = cashInflowRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("CashInflow not found"));
         currentCashInflow.setDescription(cashInflow.getDescription());
         currentCashInflow.setAmount(cashInflow.getAmount());
-        currentCashInflow.setDate(cashInflow.getDate());
+        currentCashInflow.setDate(resolveDate(cashInflow.getDate(), currentCashInflow.getDate()));
         currentCashInflow.setObservation(cashInflow.getObservation());
         currentCashInflow.setUpdatedBy(userInfoService.getCurrentUser());
         return cashInflowRepository.save(currentCashInflow);
+    }
+
+    private LocalDate resolveDate(LocalDate requestedDate, LocalDate currentDate) {
+        if (requestedDate != null) {
+            return requestedDate;
+        }
+
+        if (currentDate != null) {
+            return currentDate;
+        }
+
+        return LocalDate.now();
     }
 
 }

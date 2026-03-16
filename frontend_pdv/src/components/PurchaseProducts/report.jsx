@@ -6,6 +6,7 @@ import { Input } from '../ui/input'
 import { ArrowLeftIcon } from '../ui/icons'
 import PdfViewer from '../ui/PdfViewer'
 import PurchaseService from '../../services/PurchaseService'
+import { getTodayLocalDate } from '../../lib/date'
 
 const PurchaseProductsReport = ({setIsReportVisible}) => {
 	const [file, setfile] = useState(null)
@@ -48,7 +49,7 @@ const PurchaseProductsReport = ({setIsReportVisible}) => {
 									id="from"
 									name="from"
 									type="date"
-									defaultValue={new Date().toISOString().split('T')[0]}
+									defaultValue={getTodayLocalDate()}
 								/>
 							</div>
 
@@ -58,7 +59,7 @@ const PurchaseProductsReport = ({setIsReportVisible}) => {
 									id="to"
 									name="to"
 									type="date"
-									defaultValue={new Date().toISOString().split('T')[0]}
+									defaultValue={getTodayLocalDate()}
 								/>
 							</div>
 

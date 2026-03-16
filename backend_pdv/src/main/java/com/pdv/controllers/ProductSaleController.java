@@ -38,7 +38,7 @@ public class ProductSaleController extends BaseController<ProductSale> {
         String report = parameters.get("report").toString();
         parameters.remove("report");
 
-        ByteArrayInputStream bis = saleService.generatePdfReport("reports/sale/"+report+".jasper", parameters);
+        ByteArrayInputStream bis = saleService.generatePdfReport("reports/sale/"+report+".jrxml", parameters);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Disposition", "inline; filename=report.pdf");
