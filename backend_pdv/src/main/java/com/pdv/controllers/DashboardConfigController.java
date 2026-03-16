@@ -22,7 +22,7 @@ public class DashboardConfigController {
     private UserInfoService userInfoService;
 
     @GetMapping
-    @CheckPermission(action = "read")
+    @CheckPermission(entity = "Dashboard", action = "read")
     public ResponseEntity<DashboardConfig> getConfig() {
         User currentUser = userInfoService.getCurrentUser();
         DashboardConfig config = dashboardConfigService.getOrCreateDefault(currentUser);
@@ -30,7 +30,7 @@ public class DashboardConfigController {
     }
 
     @PostMapping
-    @CheckPermission(action = "update")
+    @CheckPermission(entity = "Dashboard", action = "update")
     public ResponseEntity<DashboardConfig> saveConfig(@RequestBody Map<String, Object> configData) {
         User currentUser = userInfoService.getCurrentUser();
         String configJson = configData.get("configJson") != null ?
@@ -40,7 +40,7 @@ public class DashboardConfigController {
     }
 
     @DeleteMapping
-    @CheckPermission(action = "update")
+    @CheckPermission(entity = "Dashboard", action = "update")
     public ResponseEntity<DashboardConfig> resetConfig() {
         User currentUser = userInfoService.getCurrentUser();
         dashboardConfigService.findByUser(currentUser).ifPresent(config -> {

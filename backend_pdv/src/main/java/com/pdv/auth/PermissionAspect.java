@@ -22,17 +22,31 @@ public class PermissionAspect {
     @Before("@annotation(checkPermission)")
     public void check(JoinPoint joinPoint, CheckPermission checkPermission) {
 
-        Object target = joinPoint.getTarget(); // controller real
+        Object target = joinPoint.getTarget();
+        String entity = resolveEntityName(target, checkPermission);
         String action = checkPermission.action();
 
-        if (!(target instanceof BaseController<?> base)) {
-            throw new AccessDeniedException("Invalid controller for permission check");
-        }
-
-        boolean allowed = permissionAuthService.hasEntityPermission(base.getEntityName(), action);
+        boolean allowed = permissionAuthService.hasEntityPermission(entity, action);
 
         if (!allowed) {
-            throw new AccessDeniedException("You do not have permission: " + base.getEntityName() + "." + action);
+            throw new AccessDeniedException("You do not have permission: " + entity + "." + action);
         }
+    }
+
+    private String resolveEntityName(Object target, CheckPermission checkPermission) {
+        if (checkPermission.entity() != null && !checkPermission.entity().isBlank()) {
+            return checkPermission.entity();
+        }
+
+        if (target instanceof BaseController<?> base) {
+            return base.getEntityName();
+        }
+
+        String className = target.getClass().getSimpleName();
+        if (className.endsWith("Controller")) {
+            return className.substring(0, className.length() - "Controller".length());
+        }
+
+        throw new AccessDeniedException("Invalid controller for permission check");
     }
 }
