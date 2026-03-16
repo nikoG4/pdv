@@ -1,7 +1,7 @@
 import axiosInstance from './axiosConfig';
 
-const API_URL = '/api/dashboard';
-const CONFIG_URL = '/api/dashboard/config';
+const API_URL = '/dashboard';
+const CONFIG_URL = '/dashboard/config';
 
 class DashboardService {
     // Estadísticas
