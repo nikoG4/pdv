@@ -472,6 +472,22 @@ CREATE TABLE IF NOT EXISTS cash_registers (
     deleted_at TIMESTAMP NULL
 );
 
+CREATE TABLE IF NOT EXISTS dashboard_configs (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES public.users(id),
+    config_json TEXT NOT NULL,
+    created_by BIGINT REFERENCES public.users(id),
+    deleted_id BIGINT REFERENCES public.users(id),
+    updated_by BIGINT REFERENCES public.users(id),
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP NULL,
+    deleted_at TIMESTAMP NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboard_configs_user_active
+    ON public.dashboard_configs (user_id)
+    WHERE deleted_at IS NULL;
+
 INSERT INTO permissions (name, description, module)
 VALUES
     ('CashRegister.active', 'Listar cajas activas', 'Caja'),
@@ -484,17 +500,6 @@ ON CONFLICT (name) DO NOTHING;
 
 ALTER TABLE IF EXISTS public.products_sales
     ALTER COLUMN client_id DROP NOT NULL;
-
--- Dashboard Permissions
-INSERT INTO permissions (name, description, module)
-VALUES
-    ('Dashboard.active', 'Listar dashboard activo', 'Dashboard'),
-    ('Dashboard.delete', 'Eliminar dashboard', 'Dashboard'),
-    ('Dashboard.create', 'Crear dashboard', 'Dashboard'),
-    ('Dashboard.update', 'Actualizar dashboard', 'Dashboard'),
-    ('Dashboard.all', 'Ver todos', 'Dashboard'),
-    ('Dashboard.read', 'Ver dashboard', 'Dashboard')
-ON CONFLICT (name) DO NOTHING;
 
 -- Dashboard Permissions
 INSERT INTO permissions (name, description, module)

@@ -7,5 +7,5 @@ import java.util.Optional;
 
 @Repository
 public interface DashboardConfigRepository extends BaseRepository<DashboardConfig, Long> {
-    Optional<DashboardConfig> findByUserId(Long userId);
+    Optional<DashboardConfig> findByUserIdAndDeletedAtIsNull(Long userId);
 }
