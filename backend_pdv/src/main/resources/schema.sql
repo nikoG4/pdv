@@ -175,13 +175,15 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 
+delete from role_permissions;
+
 -- Add all permissions to admin role
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id 
 FROM roles r
 JOIN permissions p ON true
-WHERE r.name = 'Admin'
-ON CONFLICT (role_id, permission_id) DO NOTHING;
+WHERE r.name = 'Admin';
+--ON CONFLICT (role_id, permission_id) DO NOTHING;
 
 -- Function to calculate product stock
 CREATE OR REPLACE FUNCTION public.calculate_product_stock(p_product_id integer)
