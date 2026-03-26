@@ -11,6 +11,7 @@ import { Input } from '../ui/input';
 import ProductView from './view';
 import ProductsReport from './report';
 import ProductImage from '../ui/product-image';
+import InvoiceAIModal from '../ui/InvoiceAIModal';
 
 export default function Products() {
     const [products, setProducts] = useState([]);
@@ -28,6 +29,7 @@ export default function Products() {
     const { user } = useContext(AuthContext);
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [file, setFile] = useState(null);
+    const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
     const fetchProducts = async (page) => {
         try {
@@ -202,9 +204,16 @@ export default function Products() {
                                 </Button>
                             )}
                             {user?.authorities.includes('Product.create') && (
+                                <div className="flex gap-2">
                                 <Button key={2} variant="primary" onClick={() => setSelectedProduct({})}>
                                     <PlusIcon className="mr-1 h-4 w-4" /> Nuevo Producto
                                 </Button>
+                                {user?.authorities.includes('Invoice.parse') && (
+                                    <Button variant="primary" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md" onClick={() => setIsAIModalOpen(true)}>
+                                        ✨ Carga IA
+                                    </Button>
+                                )}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -244,6 +253,12 @@ export default function Products() {
                     min: 1,
                     defaultValue: 0
                 }}
+            />
+            <InvoiceAIModal 
+                isOpen={isAIModalOpen} 
+                onClose={() => setIsAIModalOpen(false)} 
+                onConfirm={() => fetchProducts(currentPage)} 
+                mode="products"
             />
         </main>
     );

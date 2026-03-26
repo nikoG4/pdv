@@ -513,3 +513,16 @@ VALUES
     ('Dashboard.all', 'Ver todos', 'Dashboard'),
     ('Dashboard.read', 'Ver dashboard', 'Dashboard')
 ON CONFLICT (name) DO NOTHING;
+
+-- Permisos para Configuración de IA y Carga de Facturas IA
+INSERT INTO permissions (name, description, module)
+VALUES
+    ('AIProviderConfig.active',  'Listar config IA activos',   'IA Config'),
+    ('AIProviderConfig.all',     'Ver todas las config IA',    'IA Config'),
+    ('AIProviderConfig.read',    'Ver config IA',             'IA Config'),
+    ('AIProviderConfig.create',  'Crear config IA',           'IA Config'),
+    ('AIProviderConfig.update',  'Actualizar config IA',      'IA Config'),
+    ('AIProviderConfig.delete',  'Eliminar config IA',         'IA Config'),
+    ('Invoice.parse',            'Parsear facturas con IA',   'IA Invoice'),
+    ('Invoice.confirm',          'Confirmar carga de factura', 'IA Invoice')
+ON CONFLICT (name) DO NOTHING;

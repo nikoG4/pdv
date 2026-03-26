@@ -10,6 +10,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Input } from '../ui/input'; // Input para búsqueda
 import PurchaseProductsReport from './report';
 import PurchaseProductsView from './view';
+import InvoiceAIModal from '../ui/InvoiceAIModal';
 
 const PurchaseProducts = () => {
     const [purchases, setPurchases] = useState([]);
@@ -24,6 +25,7 @@ const PurchaseProducts = () => {
     const [searchQuery, setSearchQuery] = useState(''); // Estado para la búsqueda
     const { user } = useContext(AuthContext);
     const [isReportVisible, setIsReportVisible] = useState(false);
+    const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
 
     const fetchPurchases = async (page) => {
@@ -171,9 +173,16 @@ const PurchaseProducts = () => {
                                 </Button>
                             )}
                             {user?.authorities.includes('ProductPurchase.create') && (
+                                <div className="flex gap-2">
                                 <Button variant="primary" onClick={() => setSelectedPurchase({})}>
                                     <PlusIcon className="h-4 w-4 mr-1" /> Nueva compra
                                 </Button>
+                                {user?.authorities.includes('Invoice.parse') && (
+                                    <Button variant="primary" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md" onClick={() => setIsAIModalOpen(true)}>
+                                        ✨ Carga IA
+                                    </Button>
+                                )}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -197,6 +206,12 @@ const PurchaseProducts = () => {
                 onConfirm={confirmDeletePurchase}
                 title="Confirmar eliminación"
                 message="¿Estás seguro de que deseas eliminar esta compra?"
+            />
+            <InvoiceAIModal 
+                isOpen={isAIModalOpen} 
+                onClose={() => setIsAIModalOpen(false)} 
+                onConfirm={() => fetchPurchases(currentPage)} 
+                mode="purchase"
             />
         </main>
     );

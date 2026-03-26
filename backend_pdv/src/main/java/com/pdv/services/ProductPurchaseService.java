@@ -1,5 +1,6 @@
 package com.pdv.services;
 
+import com.pdv.models.Product;
 import com.pdv.models.ProductPurchase;
 import com.pdv.models.ProductPurchaseItem;
 import com.pdv.models.User;
@@ -80,6 +81,102 @@ public class ProductPurchaseService extends BaseService<ProductPurchase> {
         return updatedPurchase;
     }
 
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private ProductService productService;
+
+    @Transactional
+    public void confirmInvoice(com.pdv.requests.InvoiceDTO dto, Long supplierId) {
+        com.pdv.models.Supplier supplier = null;
+        if (supplierId != null) {
+            supplier = new com.pdv.models.Supplier();
+            supplier.setId(supplierId);
+        }
+
+        ProductPurchase purchase = new ProductPurchase();
+        purchase.setDate(dto.getDate() != null ? dto.getDate() : LocalDate.now());
+        purchase.setInvoiceNumber(dto.getInvoiceNumber());
+        purchase.setSupplier(supplier);
+        purchase.setItems(new java.util.ArrayList<>());
+
+        for (com.pdv.requests.InvoiceItemDTO itemDto : dto.getItems()) {
+            Product product = processProduct(itemDto);
+            
+            ProductPurchaseItem item = new ProductPurchaseItem();
+            item.setProduct(product);
+            item.setQuantity(itemDto.getQuantity());
+            item.setPrice(itemDto.getPrice());
+            item.setSubtotal(itemDto.getQuantity() * itemDto.getPrice());
+            item.setPurchase(purchase);
+            purchase.getItems().add(item);
+        }
+
+        this.save(purchase);
+    }
+
+    @Transactional
+    public void confirmProducts(com.pdv.requests.InvoiceDTO dto) {
+        for (com.pdv.requests.InvoiceItemDTO itemDto : dto.getItems()) {
+            processProduct(itemDto);
+        }
+    }
+
+    private Product processProduct(com.pdv.requests.InvoiceItemDTO itemDto) {
+        com.pdv.models.Category category = null;
+        
+        // Handle Category
+        if (itemDto.getCategoryId() != null) {
+            category = categoryService.findById(itemDto.getCategoryId()).orElse(null);
+        }
+        
+        if (category == null && itemDto.getCategoryName() != null && !itemDto.getCategoryName().isEmpty()) {
+            // Try matching by name or create new one if flagged
+            final String catName = itemDto.getCategoryName();
+            category = categoryService.findAll().stream()
+                    .filter(c -> c.getName() != null && c.getName().equalsIgnoreCase(catName))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (category == null && Boolean.TRUE.equals(itemDto.getIsNewCategory())) {
+                category = new com.pdv.models.Category();
+                category.setName(catName);
+                category = categoryService.save(category);
+            }
+        }
+
+        // Handle Product
+        Product product = null;
+        if (itemDto.getProductId() != null) {
+            product = productService.findById(itemDto.getProductId()).orElse(null);
+        }
+
+        if (product == null) {
+            // Fallback match by name to avoid duplicates if ID was missing but name matches
+            final String prodName = itemDto.getDescription();
+            product = productService.findAll().stream()
+                    .filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(prodName))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (product == null && Boolean.TRUE.equals(itemDto.getIsNewProduct())) {
+                product = new Product();
+                product.setName(prodName);
+                product.setCategory(category);
+                product.setPrice(itemDto.getPrice());
+                product.setStockControl(true);
+                product = productService.save(product);
+            }
+        }
+
+        if (product == null) {
+            throw new RuntimeException("No se pudo resolver el producto: " + itemDto.getDescription());
+        }
+
+        return product;
+    }
+
     private LocalDate resolveDate(LocalDate requestedDate, LocalDate currentDate) {
         if (requestedDate != null) {
             return requestedDate;
@@ -91,6 +188,4 @@ public class ProductPurchaseService extends BaseService<ProductPurchase> {
 
         return LocalDate.now();
     }
-
-
 }

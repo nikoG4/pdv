@@ -14,6 +14,7 @@ import CashInflows from '../components/CashInflows';
 import CashRegisters from '../components/CashRegisters';
 import QuickAccess from '../components/Home/QuickAccess';
 import Dashboard from '../components/Home/Dashboard';
+import AIProviderConfig from '../components/AIProviderConfig';
 
 
 export const INDEPENDENT_MODULES = [
@@ -48,6 +49,7 @@ export const MODULE_GROUPS = [
     items: [
       { path: '/users', title: 'Usuarios', component: Users, icon: UsersIcon, permission: 'User.all' },
       { path: '/roles', title: 'Roles', component: Roles, icon: SettingsIcon, permission: 'Role.all' },
+      { path: '/ai-config', title: 'Configuradores IA', component: AIProviderConfig, icon: SettingsIcon, permission: 'AIProviderConfig.all' },
       { path: '/settings', title: 'Configuración', component: Config, icon: SettingsIcon, permission: 'AppConfig.read' },
     ]
   }
