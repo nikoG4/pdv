@@ -38,4 +38,16 @@ public class AIProviderConfig extends Auditable {
     private Boolean enabled = true;
 
     private String baseUrl; // used for custom/local providers
+
+    @Column(columnDefinition = "TEXT")
+    private String customPrompt; // Optional override for the standard extraction prompt
+
+    @Column(columnDefinition = "TEXT")
+    private String requestTemplate; // Template for the JSON request body (OpenAI compatible by default)
+
+    @Column(columnDefinition = "TEXT")
+    private String responsePath = "choices[0].message.content"; // JSON path to find the content in response (uses dot notation)
+
+    @Column(columnDefinition = "TEXT")
+    private String extraHeaders; // JSON string with extra headers
 }

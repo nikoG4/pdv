@@ -25,7 +25,7 @@ public class FilesController {
     }
 
     @GetMapping("/{fileName}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileName) throws IOException {
+    public ResponseEntity<Resource> getFile(@PathVariable(name = "fileName") String fileName) throws IOException {
 
         Resource resource = fileStorageService.loadFileAsResource(fileName);
 

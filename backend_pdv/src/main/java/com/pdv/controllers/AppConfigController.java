@@ -32,11 +32,11 @@ public class AppConfigController extends BaseController<AppConfig> {
     @GetMapping
     @CheckPermission(action = "active")
     public org.springframework.data.domain.Page<AppConfig> getActive(
-            @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "10", required = false) int size,
-            @RequestParam(defaultValue = "id", required = false) String sort,
-            @RequestParam(defaultValue = "ASC", required = false) String direction,
-            @RequestParam(required = false) String q) {
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(name = "sort", defaultValue = "id", required = false) String sort,
+            @RequestParam(name = "direction", defaultValue = "ASC", required = false) String direction,
+            @RequestParam(name = "q", required = false) String q) {
         return super.getActive(page, size, sort, direction, q);
     }
 
@@ -49,11 +49,11 @@ public class AppConfigController extends BaseController<AppConfig> {
     @PostMapping(value = "/current", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CheckPermission(action = "update")
     public ResponseEntity<Map<String, String>> saveCurrentConfig(
-            @RequestParam String appName,
-            @RequestParam(required = false, defaultValue = "") String posDefaultUsers,
-            @RequestParam(required = false, defaultValue = "") String cashDenominations,
-            @RequestParam(required = false) MultipartFile logo,
-            @RequestParam(required = false) MultipartFile favicon
+            @RequestParam(name = "appName") String appName,
+            @RequestParam(name = "posDefaultUsers", required = false, defaultValue = "") String posDefaultUsers,
+            @RequestParam(name = "cashDenominations", required = false, defaultValue = "") String cashDenominations,
+            @RequestParam(name = "logo", required = false) MultipartFile logo,
+            @RequestParam(name = "favicon", required = false) MultipartFile favicon
     ) throws IOException {
         Map<String, String> current = appConfigService.getConfig();
 
@@ -83,7 +83,7 @@ public class AppConfigController extends BaseController<AppConfig> {
     @Override
     @GetMapping("/{id}")
     @CheckPermission(action = "read")
-    public ResponseEntity<AppConfig> getById(@PathVariable @Positive Long id) {
+    public ResponseEntity<AppConfig> getById(@PathVariable(name = "id") @Positive Long id) {
         return super.getById(id);
     }
 }

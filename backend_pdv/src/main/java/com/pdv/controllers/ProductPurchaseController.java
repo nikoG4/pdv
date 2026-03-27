@@ -32,7 +32,7 @@ public class ProductPurchaseController extends BaseController<ProductPurchase> {
 
     @GetMapping("/report")
     @CheckPermission(action = "active")
-    public ResponseEntity<InputStreamResource> generateReport(@RequestParam Date desde, @RequestParam Date hasta ) {
+    public ResponseEntity<InputStreamResource> generateReport(@RequestParam(name = "desde") Date desde, @RequestParam(name = "hasta") Date hasta ) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("desde", desde);
         parameters.put("hasta", hasta); 

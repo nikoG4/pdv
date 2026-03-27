@@ -2,7 +2,7 @@ import axiosInstance from './axiosConfig';
 
 const AIProviderConfigService = {
     getAll: async ({ page, size, q }) => {
-        const response = await axiosInstance.get('/ai-provider-configs/search', {
+        const response = await axiosInstance.get('/ai-provider-configs', {
             params: { page, size, q }
         });
         return response.data;
@@ -25,6 +25,11 @@ const AIProviderConfigService = {
 
     delete: async (id) => {
         const response = await axiosInstance.delete(`/ai-provider-configs/${id}`);
+        return response.data;
+    },
+
+    test: async (id) => {
+        const response = await axiosInstance.get(`/ai-provider-configs/test/${id}`);
         return response.data;
     }
 };

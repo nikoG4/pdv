@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 const View = ({ config, setView }) => {
     return (
@@ -67,6 +66,41 @@ const View = ({ config, setView }) => {
                         <span className="text-[10px] text-gray-500 bg-gray-800 px-2 py-1 rounded">Protegido</span>
                     </div>
                 </div>
+
+                { (config.customPrompt || config.requestTemplate || config.responsePath || config.extraHeaders) && (
+                    <div className="pt-6 border-t border-gray-100 space-y-6">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Configuración Avanzada</h3>
+                        
+                        {config.customPrompt && (
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Prompt Personalizado</span>
+                                <div className="p-3 bg-gray-50 border border-gray-100 font-mono text-xs text-gray-600 rounded-lg whitespace-pre-wrap max-h-40 overflow-y-auto">{config.customPrompt}</div>
+                            </div>
+                        )}
+
+                        {config.requestTemplate && (
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Template de Request JSON</span>
+                                <div className="p-3 bg-gray-900 border border-gray-800 font-mono text-[11px] text-green-400/90 rounded-lg whitespace-pre-wrap max-h-40 overflow-y-auto">{config.requestTemplate}</div>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {config.responsePath && (
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Path de Respuesta</span>
+                                    <span className="p-2 bg-indigo-50 border border-indigo-100 font-mono text-[11px] text-indigo-700 rounded-lg">{config.responsePath}</span>
+                                </div>
+                            )}
+                            {config.extraHeaders && (
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Headers Extra</span>
+                                    <span className="p-2 bg-gray-900 border border-gray-800 font-mono text-[11px] text-gray-400 rounded-lg">{config.extraHeaders}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex justify-end pt-4">
                     <Button onClick={() => setView(null)} className="h-12 px-10 bg-gray-800 hover:bg-black font-bold rounded-xl shadow-lg transition-all">Cerrar Detalle</Button>

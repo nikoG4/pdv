@@ -47,14 +47,14 @@ public class ProductController extends BaseController<Product> {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CheckPermission(action = "create")
     public ResponseEntity<Product> createProduct(
-        @RequestParam(required = false) String code,
-        @RequestParam String name,
-        @RequestParam(required = false) String description,
-        @RequestParam Long categoryId,
-        @RequestParam Double price,
-        @RequestParam(required = false) Integer iva,
-        @RequestParam(required = false, defaultValue = "false") Boolean stockControl,
-        @RequestParam(required = false) MultipartFile image
+        @RequestParam(name = "code", required = false) String code,
+        @RequestParam(name = "name") String name,
+        @RequestParam(name = "description", required = false) String description,
+        @RequestParam(name = "categoryId") Long categoryId,
+        @RequestParam(name = "price") Double price,
+        @RequestParam(name = "iva", required = false) Integer iva,
+        @RequestParam(name = "stockControl", required = false, defaultValue = "false") Boolean stockControl,
+        @RequestParam(name = "image", required = false) MultipartFile image
     ) throws IOException {
         Product product = buildProduct(code, name, description, categoryId, price, iva, stockControl);
         if (image != null && !image.isEmpty()) {
@@ -67,16 +67,16 @@ public class ProductController extends BaseController<Product> {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CheckPermission(action = "update")
     public ResponseEntity<Product> updateProduct(
-        @PathVariable Long id,
-        @RequestParam(required = false) String code,
-        @RequestParam String name,
-        @RequestParam(required = false) String description,
-        @RequestParam Long categoryId,
-        @RequestParam Double price,
-        @RequestParam(required = false) Integer iva,
-        @RequestParam(required = false, defaultValue = "false") Boolean stockControl,
-        @RequestParam(required = false, defaultValue = "false") Boolean removeImage,
-        @RequestParam(required = false) MultipartFile image
+        @PathVariable(name = "id") Long id,
+        @RequestParam(name = "code", required = false) String code,
+        @RequestParam(name = "name") String name,
+        @RequestParam(name = "description", required = false) String description,
+        @RequestParam(name = "categoryId") Long categoryId,
+        @RequestParam(name = "price") Double price,
+        @RequestParam(name = "iva", required = false) Integer iva,
+        @RequestParam(name = "stockControl", required = false, defaultValue = "false") Boolean stockControl,
+        @RequestParam(name = "removeImage", required = false, defaultValue = "false") Boolean removeImage,
+        @RequestParam(name = "image", required = false) MultipartFile image
     ) throws IOException {
         Product current = productService.findById(id)
             .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -129,12 +129,12 @@ public class ProductController extends BaseController<Product> {
     @GetMapping("/search")
     @CheckPermission(action = "active") 
     public Page<Product> searchByNameOrDescriptionOrCode(
-        @RequestParam(defaultValue = "", required = false) String q,
-        @RequestParam(defaultValue = "0", required = false) int page,
-        @RequestParam(defaultValue = "10", required = false) int size,
-        @RequestParam(defaultValue = "default", required = false) String criteria,
-        @RequestParam(defaultValue = "id", required = false) String sort,
-        @RequestParam(defaultValue = "ASC", required = false) String direction
+        @RequestParam(name = "q", defaultValue = "", required = false) String q,
+        @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+        @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+        @RequestParam(name = "criteria", defaultValue = "default", required = false) String criteria,
+        @RequestParam(name = "sort", defaultValue = "id", required = false) String sort,
+        @RequestParam(name = "direction", defaultValue = "ASC", required = false) String direction
     ) {
         if ("ranked".equalsIgnoreCase(criteria)) {
             Pageable pageable = PageRequest.of(page, size);
@@ -147,7 +147,7 @@ public class ProductController extends BaseController<Product> {
     @GetMapping("/code")
     @CheckPermission(action = "active")
     public Optional<Product> searchByNameOrDescriptionOrCode(
-        @RequestParam(required = true) String code
+        @RequestParam(name = "code", required = true) String code
     ) {
         return productService.findByCode(code);
     }
@@ -155,7 +155,7 @@ public class ProductController extends BaseController<Product> {
 
     @GetMapping("/report")
     @CheckPermission(action = "active")
-    public ResponseEntity<InputStreamResource> generateReport(@RequestParam HashMap<String, Object> parameters) {
+    public ResponseEntity<InputStreamResource> generateReport(@RequestParam(name = "parameters") HashMap<String, Object> parameters) {
         
         String report = parameters.get("report").toString();
         parameters.remove("report");

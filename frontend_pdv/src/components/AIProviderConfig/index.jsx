@@ -5,8 +5,9 @@ import { TableData } from '../ui/table';
 import AIProviderConfigService from '../../services/AIProviderConfigService';
 import Form from './form';
 import { AuthContext } from '../../services/Auth/AuthContext';
-import { DeleteIcon, EditIcon, PlusIcon, SearchIcon, ViewIcon } from '../ui/icons';
+import { DeleteIcon, EditIcon, PlusIcon, SearchIcon, ViewIcon, PlayIcon } from '../ui/icons';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import Modal from '@/components/ui/Modal';
 import { Input } from '../ui/input';
 import View from './view';
 
@@ -20,6 +21,8 @@ const AIProviderConfig = () => {
     const [pageSize] = useState(10);
     const [totalElements, setTotalElements] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
+    const [testResult, setTestResult] = useState(null);
+    const [isTesting, setIsTesting] = useState(false);
     const { user } = useContext(AuthContext);
 
     const fetchConfigs = async (page) => {
@@ -70,6 +73,22 @@ const AIProviderConfig = () => {
         }
     };
 
+    const handleTestConfig = async (configId) => {
+        setIsTesting(true);
+        try {
+            const result = await AIProviderConfigService.test(configId);
+            setTestResult(result);
+        } catch (error) {
+            setTestResult({
+                success: false,
+                error: error.response?.data?.error || error.response?.data || error.message,
+                status: error.response?.status
+            });
+        } finally {
+            setIsTesting(false);
+        }
+    };
+
     const openConfirmModal = (config) => {
         setConfigToDelete(config);
         setIsModalOpen(true);
@@ -103,6 +122,13 @@ const AIProviderConfig = () => {
                 label: "Eliminar",
                 icon: <DeleteIcon className="h-4 w-4" />,
                 onClick: (config) => openConfirmModal(config),
+            });
+        }
+        if (user?.authorities.includes('AIProviderConfig.read')) {
+            actions.push({
+                label: "Probar",
+                icon: <PlayIcon className="h-4 w-4" />,
+                onClick: (config) => handleTestConfig(config.id),
             });
         }
         return actions;
@@ -182,6 +208,55 @@ const AIProviderConfig = () => {
                 title="Confirmar eliminación"
                 message={`¿Estás seguro de que deseas eliminar el proveedor "${configToDelete?.name}"? Esta acción no se puede deshacer.`}
             />
+
+            {(!!testResult || isTesting) && (
+                <Modal onClose={() => setTestResult(null)} title="Prueba de Conexión IA">
+                    <div className="p-6">
+                        {isTesting ? (
+                            <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                                <p className="text-gray-600 font-medium">Enviando petición de prueba...</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className={`p-4 rounded-xl flex items-center gap-3 ${testResult?.success ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
+                                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${testResult?.success ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                        {testResult?.success ? '✓' : '✗'}
+                                    </div>
+                                    <div>
+                                        <h3 className={`font-bold ${testResult?.success ? 'text-green-800' : 'text-red-800'}`}>
+                                            {testResult?.success ? 'Conexión Exitosa' : 'Error de Conexión'}
+                                        </h3>
+                                        <p className="text-sm opacity-80">
+                                            Status Code: <span className="font-mono">{testResult?.status}</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {testResult?.error && (
+                                    <div className="p-3 bg-gray-100 rounded-lg border border-gray-200">
+                                        <p className="text-xs font-bold text-gray-500 uppercase mb-1">Detalle del Error</p>
+                                        <p className="text-sm text-red-600 font-mono break-words">{testResult.error}</p>
+                                    </div>
+                                )}
+
+                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <p className="text-xs font-bold text-gray-500 uppercase mb-1">Respuesta del Motor</p>
+                                    <pre className="text-xs bg-white p-3 rounded border border-gray-100 overflow-x-auto whitespace-pre-wrap max-h-48">
+                                        {testResult?.response || 'Sin respuesta'}
+                                    </pre>
+                                </div>
+
+                                <div className="pt-4 flex justify-end">
+                                    <Button onClick={() => setTestResult(null)} className="bg-gray-800 hover:bg-gray-900 text-white font-bold h-11 px-8 rounded-xl">
+                                        Cerrar
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </Modal>
+            )}
         </main>
     );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Modal from './modal';
+import Modal from './Modal';
 import { Button } from './button';
 import { Input } from './input';
 import InvoiceAIService from '../../services/InvoiceAIService';

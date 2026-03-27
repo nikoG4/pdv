@@ -33,11 +33,11 @@ public class RoleController extends BaseController<Role> {
     @GetMapping("/active")
     @CheckPermission(action = "active")
     public Page<Role> getActiveRoles(
-        @RequestParam(defaultValue = "0", required = false) int page,
-        @RequestParam(defaultValue = "10", required = false) int size,
-        @RequestParam(defaultValue = "id", required = false) String sort,
-        @RequestParam(defaultValue = "ASC", required = false) String direction,
-        @RequestParam(required = false) String q
+        @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+        @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+        @RequestParam(name = "sort", defaultValue = "id", required = false) String sort,
+        @RequestParam(name = "direction", defaultValue = "ASC", required = false) String direction,
+        @RequestParam(name = "q", required = false) String q
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.valueOf(direction), sort));
         Page<Role> roles = q != null && q.length() > 0 ? roleService.search(q, pageable) : roleService.findActive(pageable);

@@ -514,6 +514,27 @@ VALUES
     ('Dashboard.read', 'Ver dashboard', 'Dashboard')
 ON CONFLICT (name) DO NOTHING;
 
+CREATE TABLE IF NOT EXISTS ai_provider_configs (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    provider_type VARCHAR(255) NOT NULL,
+    api_key VARCHAR(255) NOT NULL,
+    model VARCHAR(255) NOT NULL,
+    priority INTEGER NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    base_url VARCHAR(255),
+    custom_prompt TEXT,
+    request_template TEXT,
+    response_path TEXT DEFAULT 'choices[0].message.content',
+    extra_headers TEXT,
+    created_by BIGINT REFERENCES public.users(id),
+    deleted_id BIGINT REFERENCES public.users(id),
+    updated_by BIGINT REFERENCES public.users(id),
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP NULL,
+    deleted_at TIMESTAMP NULL
+);
+
 -- Permisos para Configuración de IA y Carga de Facturas IA
 INSERT INTO permissions (name, description, module)
 VALUES

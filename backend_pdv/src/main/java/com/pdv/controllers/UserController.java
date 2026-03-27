@@ -42,7 +42,7 @@ public class UserController extends BaseController<User> {
 
     @PutMapping("/update-user/{id}")
     @CheckPermission(action = "update")
-    public ResponseEntity<User> update(@RequestBody UserRequest userR, @PathVariable Long id) {
+    public ResponseEntity<User> update(@RequestBody UserRequest userR, @PathVariable(name = "id") Long id) {
         
         User user = new User();
         user.setId(id);
@@ -68,7 +68,7 @@ public class UserController extends BaseController<User> {
     @Override
     @PutMapping("/{id}")
     @CheckPermission(action = "update")
-    public ResponseEntity<User> update(@Positive Long id, @Valid User t) {
+    public ResponseEntity<User> update(@PathVariable(name = "id") @Positive Long id, @Valid User t) {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
 

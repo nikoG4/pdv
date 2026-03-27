@@ -28,7 +28,7 @@ public class CashOutflowController extends BaseController<CashOutflow> {
 
     @GetMapping("/report")
     @CheckPermission(action = "active")
-    public ResponseEntity<InputStreamResource> generateReport(@RequestParam HashMap<String, Object> parameters) {
+    public ResponseEntity<InputStreamResource> generateReport(@RequestParam(name = "parameters") HashMap<String, Object> parameters) {
 
         
         parameters.remove("report");

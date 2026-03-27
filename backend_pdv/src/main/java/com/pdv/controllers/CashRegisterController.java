@@ -38,25 +38,25 @@ public class CashRegisterController extends BaseController<CashRegister> {
 
     @GetMapping("/{id}/summary")
     @CheckPermission(action = "read")
-    public ResponseEntity<CashRegisterSummary> getSummary(@PathVariable Long id) {
+    public ResponseEntity<CashRegisterSummary> getSummary(@PathVariable(name = "id") Long id) {
         return ResponseEntity.ok(cashRegisterService.getSummary(id));
     }
 
     @GetMapping("/{id}/movements")
     @CheckPermission(action = "read")
-    public ResponseEntity<List<CashRegisterMovement>> getMovements(@PathVariable Long id) {
+    public ResponseEntity<List<CashRegisterMovement>> getMovements(@PathVariable(name = "id") Long id) {
         return ResponseEntity.ok(cashRegisterService.getMovements(id));
     }
 
     @PostMapping("/{id}/close")
     @CheckPermission(action = "update")
-    public ResponseEntity<CashRegister> close(@PathVariable Long id, @RequestBody CashRegisterCloseRequest closeRequest) {
+    public ResponseEntity<CashRegister> close(@PathVariable(name = "id") Long id, @RequestBody CashRegisterCloseRequest closeRequest) {
         return ResponseEntity.ok(cashRegisterService.close(id, closeRequest));
     }
 
     @GetMapping("/{id}/report-summary")
     @CheckPermission(action = "read")
-    public ResponseEntity<InputStreamResource> generateSummaryReport(@PathVariable Long id) {
+    public ResponseEntity<InputStreamResource> generateSummaryReport(@PathVariable(name = "id") Long id) {
         ByteArrayInputStream bis = cashRegisterService.generateSummaryReport(id);
 
         HttpHeaders headers = new HttpHeaders();
@@ -71,7 +71,7 @@ public class CashRegisterController extends BaseController<CashRegister> {
 
     @GetMapping("/{id}/report-movements")
     @CheckPermission(action = "read")
-    public ResponseEntity<InputStreamResource> generateMovementsReport(@PathVariable Long id) {
+    public ResponseEntity<InputStreamResource> generateMovementsReport(@PathVariable(name = "id") Long id) {
         ByteArrayInputStream bis = cashRegisterService.generateMovementsReport(id);
 
         HttpHeaders headers = new HttpHeaders();

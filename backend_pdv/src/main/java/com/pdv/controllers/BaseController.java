@@ -43,11 +43,11 @@ public abstract class BaseController<T> {
     @GetMapping
     @CheckPermission(action = "active")
     public Page<T> getActive(
-            @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "10", required = false) int size,
-            @RequestParam(defaultValue = "id", required = false) String sort,
-            @RequestParam(defaultValue = "ASC", required = false) String direction,
-            @RequestParam(required = false) String q) {
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(name = "sort", defaultValue = "id", required = false) String sort,
+            @RequestParam(name = "direction", defaultValue = "ASC", required = false) String direction,
+            @RequestParam(name = "q", required = false) String q) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.valueOf(direction), sort));
 
@@ -63,10 +63,10 @@ public abstract class BaseController<T> {
     @GetMapping("/all")
     @CheckPermission(action = "all")
     public Page<T> getAll(
-        @RequestParam(defaultValue = "0", required = false) int page,
-        @RequestParam(defaultValue = "10", required = false) int size,
-        @RequestParam(defaultValue = "id", required = false) String sort,
-        @RequestParam(defaultValue = "ASC", required = false) String direction
+        @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+        @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+        @RequestParam(name = "sort", defaultValue = "id", required = false) String sort,
+        @RequestParam(name = "direction", defaultValue = "ASC", required = false) String direction
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.valueOf(direction), sort));
         return service.findAll(pageable);
@@ -90,7 +90,7 @@ public abstract class BaseController<T> {
 
     @GetMapping("/{id}")
     @CheckPermission(action = "read")
-    public ResponseEntity<T> getById(@PathVariable @Positive Long id) {
+    public ResponseEntity<T> getById(@PathVariable(name = "id") @Positive Long id) {
         return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -99,7 +99,7 @@ public abstract class BaseController<T> {
 
     @PutMapping("/{id}")
     @CheckPermission(action = "update")
-    public ResponseEntity<T> update(@PathVariable @Positive Long id, @Valid @RequestBody T t) {
+    public ResponseEntity<T> update(@PathVariable(name = "id") @Positive Long id, @Valid @RequestBody T t) {
 
         return ResponseEntity.ok(service.update(t, id));
     
@@ -108,7 +108,7 @@ public abstract class BaseController<T> {
 
     @DeleteMapping("/{id}")
     @CheckPermission(action = "delete")
-    public ResponseEntity<Object> delete(@PathVariable @Positive Long id) {
+    public ResponseEntity<Object> delete(@PathVariable(name = "id") @Positive Long id) {
         return service.findById(id)
                 .map(product -> {
                     service.delete(product);

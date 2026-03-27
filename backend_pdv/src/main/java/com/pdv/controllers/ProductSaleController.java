@@ -33,7 +33,7 @@ public class ProductSaleController extends BaseController<ProductSale> {
 
     @GetMapping("/report")
     @CheckPermission(action = "active")
-    public ResponseEntity<InputStreamResource> generateReport(@RequestParam HashMap<String, Object> parameters) {
+    public ResponseEntity<InputStreamResource> generateReport(@RequestParam(name = "parameters") HashMap<String, Object> parameters) {
         
         String report = parameters.get("report").toString();
         parameters.remove("report");
@@ -53,7 +53,7 @@ public class ProductSaleController extends BaseController<ProductSale> {
     
     @GetMapping("/print/{id}")
     @CheckPermission(action = "active")
-    public ResponseEntity<Object> print(@PathVariable @Positive Long id) {
+    public ResponseEntity<Object> print(@PathVariable(name = "id") @Positive Long id) {
         return saleService.findById(id)
         .map(product -> {
             saleService.printSale(product);
