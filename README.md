@@ -97,7 +97,7 @@ MAX_FILE_SIZE
 MAX_REQUEST_SIZE
 ```
 
-Ejemplo para PowerShell:
+`JWT_SECRET` es obligatorio para iniciar el backend. Ejemplo para PowerShell:
 
 ```powershell
 $env:DB_URL="jdbc:postgresql://localhost:5432/postgres"
