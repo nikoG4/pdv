@@ -4,7 +4,7 @@ Sistema full-stack de punto de venta y gestión comercial con backend en **Java 
 
 El proyecto está organizado en dos aplicaciones principales y usa una arquitectura modular para reutilizar operaciones CRUD, permisos, auditoría, búsquedas y reportes entre los distintos módulos del sistema.
 
-> **Estado:** proyecto en desarrollo. El repositorio contiene backend, frontend y scripts/configuración de despliegue; antes de usarlo fuera de un entorno local es necesario reemplazar la configuración de desarrollo y gestionar los secretos mediante variables de entorno o un gestor de secretos.
+> **Estado:** proyecto en desarrollo. El repositorio contiene backend, frontend y scripts/configuración de despliegue. Los secretos y credenciales deben gestionarse mediante variables de entorno y no versionarse en el repositorio.
 
 ## Stack
 
@@ -79,27 +79,52 @@ Las entidades de negocio reutilizan componentes base para reducir código repeti
 - PostgreSQL
 - Node.js + npm
 
-## Ejecutar el backend
+## Configuración del backend
 
-Primero configura la conexión a PostgreSQL y los secretos de la aplicación para tu entorno.
+La configuración sensible se toma desde variables de entorno. Las principales son:
 
-En Windows:
-
-```powershell
-cd backend_pdv
-.\mvnw.cmd spring-boot:run
+```text
+DB_URL
+DB_USERNAME
+DB_PASSWORD
+JWT_SECRET
+JWT_EXPIRATION
+PORT
+CORS_ALLOW
+PRINTER_NAME
+UPLOAD_DIR
+MAX_FILE_SIZE
+MAX_REQUEST_SIZE
 ```
 
-En Linux/macOS:
+Ejemplo para PowerShell:
+
+```powershell
+$env:DB_URL="jdbc:postgresql://localhost:5432/postgres"
+$env:DB_USERNAME="postgres"
+$env:DB_PASSWORD="tu_password_local"
+$env:JWT_SECRET="genera-un-secreto-largo-y-aleatorio"
+```
+
+No uses secretos reales en `application.properties`, commits, issues ni documentación pública.
+
+## Desarrollo
+
+### Backend
 
 ```bash
 cd backend_pdv
 ./mvnw spring-boot:run
 ```
 
-Por defecto el backend utiliza el puerto `8080`.
+En Windows:
 
-## Ejecutar el frontend
+```bat
+cd backend_pdv
+mvnw.cmd spring-boot:run
+```
+
+### Frontend
 
 ```bash
 cd frontend_pdv
@@ -107,54 +132,34 @@ npm install
 npm run dev
 ```
 
-Build de producción:
+## Seguridad y permisos
 
-```bash
-npm run build
-```
-
-## Sistema de permisos
-
-Los permisos siguen la convención:
+El backend utiliza Spring Security y permisos con el formato:
 
 ```text
-NombreEntidad.read
-NombreEntidad.create
-NombreEntidad.update
-NombreEntidad.delete
-NombreEntidad.active
-NombreEntidad.all
+Entidad.create
+Entidad.read
+Entidad.update
+Entidad.delete
+Entidad.active
+Entidad.all
 ```
 
-El backend valida permisos mediante `@CheckPermission`, mientras que el frontend utiliza las authorities del usuario para mostrar u ocultar acciones disponibles.
+Los mismos permisos se utilizan en el frontend para ocultar o habilitar acciones según las autoridades del usuario autenticado.
 
-## Soft delete y auditoría
+## Base de datos
 
-Las entidades que heredan de `Auditable` conservan información como creación, modificación y eliminación. La eliminación normal del sistema es lógica: se completa `deletedAt`/`deletedBy` en lugar de borrar físicamente el registro.
+La configuración actual está orientada a PostgreSQL. Revisa los scripts SQL y la configuración de cada entorno antes de desplegar.
 
 ## Reportes
 
-Los reportes Jasper se organizan dentro de:
+Los reportes Jasper se almacenan en los recursos del backend y pueden generarse desde los servicios mediante la infraestructura compartida de reportes.
 
-```text
-backend_pdv/src/main/resources/reports/
-```
+## Notas de seguridad
 
-Los servicios pueden utilizar la infraestructura común de `BaseService` para generar PDFs a partir de plantillas JasperReports.
+- Nunca publiques secretos JWT, contraseñas de base de datos o tokens de servicios.
+- Usa variables de entorno o un gestor de secretos en producción.
+- Si un secreto fue versionado alguna vez en un repositorio público, considéralo comprometido y rótalo.
+- Revisa CORS antes de exponer la API fuera de una red controlada.
 
-## Seguridad y configuración
-
-Este repositorio contiene configuración pensada para desarrollo local. Para un despliegue real:
-
-- no reutilices secretos JWT incluidos en configuraciones de desarrollo;
-- no mantengas credenciales de base de datos en archivos versionados;
-- usa variables de entorno o un gestor de secretos;
-- restringe correctamente CORS;
-- usa credenciales independientes por entorno;
-- revisa permisos y usuarios antes de exponer la API públicamente.
-
-## Desarrollo de nuevos módulos
-
-La guía interna del repositorio documenta el patrón utilizado para agregar una nueva entidad completa: modelo, repository, service, controller, servicio frontend, listado, formulario, vista detalle y permisos SQL.
-
-Consulta [`AGENTS.md`](AGENTS.md) para las convenciones detalladas del proyecto.
+Consulta `AGENTS.md` para más detalles sobre la arquitectura interna y las convenciones de desarrollo.
