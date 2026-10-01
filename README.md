@@ -159,7 +159,7 @@ Los reportes Jasper se almacenan en los recursos del backend y pueden generarse 
 
 - Nunca publiques secretos JWT, contraseñas de base de datos o tokens de servicios.
 - Usa variables de entorno o un gestor de secretos en producción.
-- Si un secreto fue versionado alguna vez en un repositorio público, considéralo comprometido y rótalo.
+- Si un secreto fue versionado alguna vez en un repositorio público, considéralo comprometido y rótalo; eliminarlo del último commit no limpia el historial de Git.
 - Revisa CORS antes de exponer la API fuera de una red controlada.
 
 Consulta `AGENTS.md` para más detalles sobre la arquitectura interna y las convenciones de desarrollo.
