@@ -1,0 +1,200 @@
+name: POS - auditoria Java4Shell y JWT (laboratorio)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - ".github/workflows/java4shell-pos-lab.yml"
+      - "backend_pdv/**"
+
+permissions:
+  contents: read
+
+jobs:
+  laboratorio:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pdv_test
+          POSTGRES_PASSWORD: only_for_actions_lab
+          POSTGRES_DB: pdv_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pdv_test -d pdv_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 8
+    env:
+      DB_URL: jdbc:postgresql://127.0.0.1:5432/pdv_test
+      DB_USERNAME: pdv_test
+      DB_PASSWORD: only_for_actions_lab
+      JWT_EXPIRATION: "3600000"
+      CORS_ALLOW: http://localhost:5173
+      PORT: "8080"
+      UPLOAD_DIR: /tmp/pos-java4shell-lab-uploads
+      CI: "true"
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Inventario de CPU e instrucciones reales del runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          lscpu > audit/lscpu.txt
+          grep -m 1 '^flags' /proc/cpuinfo > audit/cpu-flags.txt || true
+          {
+            echo "## CPU del runner (NO del OpenShift productivo)"
+            grep -E 'Architecture:|Model name:|Virtualization:' audit/lscpu.txt || true
+            echo
+            for flag in avx512f avx512bw avx512_vbmi bmi2; do
+              if tr ' ' '\n' < audit/cpu-flags.txt | grep -qx "$flag"; then
+                printf '%s: SI\n' "$flag"
+              else
+                printf '%s: NO\n' "$flag"
+              fi
+            done
+          } | tee audit/resumen-cpu.txt
+          cat audit/resumen-cpu.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Configurar Java 17 Temurin
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: backend_pdv/pom.xml
+
+      - name: Versión JVM y optimizaciones Base64
+        shell: bash
+        run: |
+          {
+            echo "=== java -version ==="
+            java -version
+            echo
+            echo "=== Flags relevantes de HotSpot ==="
+            java -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -version 2>&1 | grep -E 'UseAVX |UseBASE64Intrinsics ' || true
+          } > audit/java.txt 2>&1
+          cat audit/java.txt
+          echo '### JVM del runner' >> "$GITHUB_STEP_SUMMARY"
+          echo '~~~text' >> "$GITHUB_STEP_SUMMARY"
+          cat audit/java.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '~~~' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Crear secreto JWT exclusivamente de pruebas
+        shell: bash
+        run: |
+          secret="$(openssl rand -base64 48 | tr -d '\n')"
+          echo "JWT_SECRET=$secret" >> "$GITHUB_ENV"
+          echo "Secreto efímero generado (no se publica su valor)."
+
+      - name: Revisar usos de Base64 en el código propio
+        shell: bash
+        run: |
+          {
+            echo '=== Usos de Base64 / JJWT (no incluye dependencias transitivas) ==='
+            grep -RnE 'java\.util\.Base64|Base64\.getDecoder|Decoders\.BASE64|parseClaimsJws' backend_pdv/src/main/java || true
+          } > audit/base64-en-codigo.txt
+          cat audit/base64-en-codigo.txt
+
+      - name: Compilar POS sin ejecutar pruebas
+        id: build
+        shell: bash
+        run: |
+          set -o pipefail
+          bash ./backend_pdv/mvnw -B -ntp -f backend_pdv/pom.xml -DskipTests package > audit/compilacion.log 2>&1 || {
+            tail -n 100 audit/compilacion.log
+            exit 1
+          }
+          tail -n 30 audit/compilacion.log
+
+      - name: Ejecutar tests Maven contra PostgreSQL desechable
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          bash ./backend_pdv/mvnw -B -ntp -f backend_pdv/pom.xml test > audit/tests.log 2>&1 || {
+            tail -n 100 audit/tests.log
+            exit 1
+          }
+          tail -n 30 audit/tests.log
+
+      - name: Levantar POS solo en 127.0.0.1 y probar JWT inocuos
+        if: steps.build.outcome == 'success'
+        id: smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          jar="$(find backend_pdv/target -maxdepth 1 -name '*.jar' ! -name '*.original' -print -quit)"
+          test -n "$jar"
+          java -jar "$jar" > audit/backend.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 80); do
+            code="$(curl -s --connect-timeout 1 --max-time 2 -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/products || true)"
+            if [[ "$code" =~ ^[1-5][0-9][0-9]$ ]]; then ready=1; break; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 2
+          done
+          if [[ "$ready" -ne 1 ]]; then
+            echo "El backend no quedó disponible en localhost. Consultá audit/backend.log."
+            tail -n 80 audit/backend.log || true
+            exit 1
+          fi
+          echo 'endpoint,caso,http_status' > audit/pruebas-http.csv
+          unexpected=0
+          for endpoint in /api/products /api/users /api/roles; do
+            for scenario in anonymous malformed_no_dots malformed_three_segments; do
+              case "$scenario" in
+                anonymous)
+                  code="$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' "http://127.0.0.1:8080$endpoint" || true)"
+                  ;;
+                malformed_no_dots)
+                  code="$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer jwt-invalido' "http://127.0.0.1:8080$endpoint" || true)"
+                  ;;
+                malformed_three_segments)
+                  code="$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer e30.e30.invalid' "http://127.0.0.1:8080$endpoint" || true)"
+                  ;;
+              esac
+              echo "$endpoint,$scenario,$code" | tee -a audit/pruebas-http.csv
+              if [[ "$code" =~ ^2[0-9][0-9]$ ]]; then
+                echo "::error::Respuesta 2xx inesperada en $endpoint con escenario $scenario"
+                unexpected=1
+              elif [[ "$code" == 500 ]]; then
+                echo "::warning::Error 500 al procesar JWT inválido; NO demuestra Java4Shell."
+              elif [[ "$code" == "000" ]]; then
+                echo "::warning::Fallo de conexión/timeout en $endpoint con escenario $scenario."
+                unexpected=1
+              fi
+            done
+          done
+          final="$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/products || true)"
+          echo "Respuesta final sin autenticar: $final" | tee audit/disponibilidad-final.txt
+          if [[ "$final" == "000" ]]; then
+            echo "::error::El backend dejó de responder en localhost."
+            unexpected=1
+          fi
+          {
+            echo "### Pruebas HTTP locales (tokens inocuos; NO PoC de corrupción)"
+            echo '~~~csv'
+            cat audit/pruebas-http.csv
+            echo '~~~'
+            echo "Disponibilidad final: $final"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$unexpected"
+
+      - name: Subir evidencias del laboratorio
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-java4shell-pos
+          path: audit/
+          retention-days: 7
+          if-no-files-found: warn
